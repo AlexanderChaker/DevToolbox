@@ -1,0 +1,208 @@
+﻿@page "/deploygitbranch"
+
+@using CommunityToolkit.Maui.Storage;
+@using Services;
+@using Microsoft.Extensions.Logging;
+
+@inject ILogger<DeployGitBranchComp> Logger;
+@inject IGitService gitService;
+@inject ISQLService sqlService;
+
+<h3>GitDeployBranch</h3>
+
+<div>
+    <InputText id="serverUrl" type="text" style="width:500px" @bind-Value=@serverUrl> </InputText>
+    <button class="btn btn-primary" @onclick="SetServerURL">Set</button> <br />
+    <InputSelect id="dbName" style="width:100px" @bind-Value=@dbName>
+        @foreach (string name in dbNames)
+        {
+            <option value=@name>@name</option>
+        }
+    </InputSelect> <br />
+</div>
+
+<div>
+    <InputCheckbox @bind-Value=@useYaml> </InputCheckbox> <label> Load Yaml </label> <br />
+    <InputText type="text" style="width:500px" @bind-Value=@workingDirectory readonly="true" > </InputText>
+    <button button class="btn btn-primary" @onclick="SetWorkingDirectoryAsync">Load</button> <br />
+    
+    <label> Current Branch </label> <br />
+    <InputSelect id="currentBranch" style="width:100px" @bind-Value=@currentBranch>
+    </InputSelect> <br />
+
+    <label> Source Branch </label> <br />
+    <InputSelect id="sourceBranch" style="width:100px" @bind-Value=@sourceBranch>
+    </InputSelect> <br />
+</div>
+
+<div>
+    <InputTextArea type="text" style="width:50%; height:500px; font-size:12px;" @bind-Value=@console></InputTextArea> <br />
+</div>
+
+<div>
+    <button button class="btn btn-primary" @onclick="RunGitDiffsAsync">Git Diffs</button>
+    <button button class="btn btn-primary" @onclick="RunSQLQueries" @attributes=btnRunSQLEnabled>Run SQL</button>
+</div>
+
+@code {
+    protected string serverUrl { get; set; } = "DEVSentientSQL.flexjetnet.com";
+    protected string workingDirectory { get; set; } = "";
+    protected string yamlFilePath { get; set; } = "";
+    protected bool useYaml { get; set; } = false;
+    protected string console { get; set; } = "";
+    protected string dbName { get; set; } = "";
+    protected string currentBranch { get; set; } = "dev";
+    protected string sourceBranch { get; set; } = "master";
+    protected List<string> dbNames { get; set; } = new();
+    protected List<string>? fileList { get; set; }
+    protected Dictionary<string, object>? btnRunSQLEnabled { get; set; } // https://learn.microsoft.com/en-us/aspnet/core/blazor/components/splat-attributes-and-arbitrary-parameters?view=aspnetcore-8.0
+
+    private async Task SetServerURL()
+    {
+        string connectionString = $"Server={serverUrl};Integrated Security=true;Multisubnetfailover=yes;Application Name=DevToolkit.DeployGitBranch;Encrypt=false";
+        sqlService.SetConnectionString(connectionString);
+
+        dbNames = await sqlService.GetDBListAsync();
+    }
+
+    private async Task LoadFileAsync()
+    {
+        Logger.LogInformation("Button Pressed");
+
+        try
+        {
+            var result = await FilePicker.Default.PickAsync(PickOptions.Default);
+
+            if (result != null)
+            {
+                Logger.LogInformation("File location: {path}", result.FullPath);
+                yamlFilePath = result.FullPath;
+
+                if (useYaml)
+                {
+                    Logger.LogInformation("Trying to load YAML file at: {path}", yamlFilePath);
+                    var list = await gitService.ParseYAMLAsync(yamlFilePath);
+
+                    //Print results
+                    console = console + "===========YAML FoldersToProcess===========" + "\n";
+                    foreach(string line in list)
+                    {
+                        console = console + line + "\n";
+                    }
+
+                    console = console + "\n";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading file.");
+        }
+    }
+
+    private async Task SetWorkingDirectoryAsync()
+    {
+        try
+        {
+            var folder = await FolderPicker.PickAsync(default);
+
+            if (folder.IsSuccessful && !string.IsNullOrEmpty(folder?.Folder?.Path))
+            {
+                Logger.LogInformation("Folder location: {path}", folder.Folder.Path); //folder.Folder.Name
+                workingDirectory = folder.Folder.Path;
+
+                if (useYaml)
+                {
+                    Logger.LogInformation("Trying to load YAML file at: {path}", yamlFilePath);
+                    yamlFilePath = Path.Combine(folder.Folder.Path, "azure-pipelines.yml");
+
+                    if (!File.Exists(yamlFilePath))
+                    {
+                        console = console + "Could not find \"azure-pipelines.yml\" in current path";
+                        Logger.LogWarning("Could not find \"azure-pipelines.yml\" in current path");
+                    }
+                    else
+                    {
+                        Logger.LogInformation("Found YAML file at: {path}", yamlFilePath);
+                        var list = await gitService.ParseYAMLAsync(yamlFilePath);
+                        Logger.LogInformation("Parsed YAML successfully");
+
+                        //Print results
+                        console = console + "===========YAML FoldersToProcess===========" + "\n";
+                        foreach (string line in list)
+                        {
+                            console = console + line + "\n";
+                        }
+
+                        console = console + "\n";
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading file.");
+        }
+    }
+
+    private async Task RunGitDiffsAsync()
+    {
+        if (string.IsNullOrEmpty(workingDirectory))
+        {
+            throw new Exception("Working Directory needs to be set");
+        }
+
+        var fileRelativePaths = await gitService.RunGitDiffsAsync(workingDirectory, currentBranch, sourceBranch);
+        fileList = sqlService.GetAbsolutFileList(workingDirectory, fileRelativePaths);
+        
+        if (fileList.Count > 0)
+        {
+            EnableRunSQLBtn(true);
+        }
+
+        //Print results
+        console = console + "===========GIT Diffs dev-master===========" + "\n";
+        foreach (string line in fileList)
+        {
+            console = console + line + "\n";
+        }
+        console = console + "\n";
+    }
+
+    private async Task RunSQLQueries()
+    {
+        if (fileList is null)
+        {
+            throw new Exception("File List needs to be generated");
+        }
+
+        var results = await sqlService.RunSQLQueriesAsync(serverUrl, fileList);
+
+        //Print results
+        console = console + "===========Query Results===========" + "\n";
+        foreach (string result in results)
+        {
+            console = console + result + "\n";
+        }
+        console = console + "\n";
+    }
+
+    protected override void OnInitialized()
+    {
+        EnableRunSQLBtn(false);
+    }
+
+    private void EnableRunSQLBtn(bool enable)
+    {
+        btnRunSQLEnabled = btnRunSQLEnabled?? new Dictionary<string, object>();
+
+        if (enable)
+        {
+            btnRunSQLEnabled?.Clear();
+        }
+        else
+        {
+            btnRunSQLEnabled["disabled"] = "";
+        }
+    }
+}
