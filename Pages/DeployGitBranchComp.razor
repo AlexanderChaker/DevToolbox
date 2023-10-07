@@ -12,31 +12,47 @@
 
 <div>
     <InputText id="serverUrl" type="text" style="width:500px" @bind-Value=@serverUrl> </InputText>
-    <button class="btn btn-primary" @onclick="SetServerURL">Set</button> <br />
+    <button class="btn btn-primary" @onclick="SetServerURL">Set</button> <img src="images/checkbox.png" style="width:25px;height:25px" /> <br />
     <InputSelect id="dbName" style="width:100px" @bind-Value=@dbName>
         @foreach (string name in dbNames)
         {
             <option value=@name>@name</option>
         }
     </InputSelect> <br />
+    
 </div>
 
 <div>
     <InputCheckbox @bind-Value=@useYaml> </InputCheckbox> <label> Load Yaml </label> <br />
     <InputText type="text" style="width:500px" @bind-Value=@workingDirectory readonly="true" > </InputText>
-    <button button class="btn btn-primary" @onclick="SetWorkingDirectoryAsync">Load</button> <br />
-    
-    <label> Current Branch </label> <br />
-    <InputSelect id="currentBranch" style="width:100px" @bind-Value=@currentBranch>
-    </InputSelect> <br />
+    <button button class="btn btn-primary" @onclick="SetWorkingDirectoryAsync">Load</button> <img src="images/checkbox.png" style="width:25px;height:25px" /> <br />
 
-    <label> Source Branch </label> <br />
-    <InputSelect id="sourceBranch" style="width:100px" @bind-Value=@sourceBranch>
-    </InputSelect> <br />
+    <table>
+        <tr>
+            <td><label> Current Branch </label> </td>
+            <td><InputSelect id="currentBranch" style="width:100px" @bind-Value=@currentBranch>
+                    @foreach (string name in gitBranches)
+                    {
+                        <option value=@name>@name</option>
+                    }
+                </InputSelect>
+            </td>
+        </tr>
+        <tr>
+            <td><label> Source Branch </label></td>
+            <td><InputSelect id="sourceBranch" style="width:100px" @bind-Value=@sourceBranch>
+                    @foreach (string name in gitBranches)
+                    {
+                        <option value=@name>@name</option>
+                    }
+                </InputSelect>
+            </td>
+        </tr>
+    </table>
 </div>
 
 <div>
-    <InputTextArea type="text" style="width:50%; height:500px; font-size:12px;" @bind-Value=@console></InputTextArea> <br />
+    <InputTextArea type="text" style="width:50%; height:500px; font-size:12px;" @bind-Value=@console readonly="true"></InputTextArea> <br />
 </div>
 
 <div>
@@ -55,6 +71,7 @@
     protected string sourceBranch { get; set; } = "master";
     protected List<string> dbNames { get; set; } = new();
     protected List<string>? fileList { get; set; }
+    protected List<string> gitBranches { get; set; } = new();
     protected Dictionary<string, object>? btnRunSQLEnabled { get; set; } // https://learn.microsoft.com/en-us/aspnet/core/blazor/components/splat-attributes-and-arbitrary-parameters?view=aspnetcore-8.0
 
     private async Task SetServerURL()
@@ -137,6 +154,8 @@
                         console = console + "\n";
                     }
                 }
+
+                gitBranches = await gitService.GetBranchesAsync(folder.Folder.Path);
             }
         }
         catch (Exception ex)

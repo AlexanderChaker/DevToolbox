@@ -1,7 +1,5 @@
 ﻿using CliWrap;
 using CliWrap.Buffered;
-using Microsoft.SqlServer.Server;
-using System.Diagnostics;
 using YamlDotNet.Serialization;
 
 namespace DeployGitBranch.Services;
@@ -29,7 +27,7 @@ public class GitService : IGitService
                     //textBlock.Text = fileContents;
                     var yamlDeserializer = new DeserializerBuilder()
                                                 .IgnoreUnmatchedProperties()
-                                                //.WithNamingConvention(PascalCaseNamingConvention.Instance) //how to make it map case insensitive?
+                                                //.WithNamingConvention(PascalCaseNamingConvention.Instance) //TODO how to make it map case insensitive?
                                                 .Build();
                     AzurePipelineYaml yamlFile = yamlDeserializer.Deserialize<AzurePipelineYaml>(fileContents);
                     string[] foldersToProcess = yamlFile.variables?["FoldersToProcess"].Split(',', StringSplitOptions.TrimEntries) ?? Array.Empty<string>();
@@ -50,9 +48,33 @@ public class GitService : IGitService
         return result;
     }
 
-    public async Task<List<string>> RunGitDiffsAsync()
+    public async Task<List<string>> GetBranchesAsync(string workingDirectory)
     {
-        return await RunGitDiffsAsync(@"C:\source_code\Database\Sentient.Database", "dev", "master");
+        if (string.IsNullOrEmpty(workingDirectory))
+        {
+            throw new Exception("Working Directory needs to be set");
+        }
+
+        string cmd = "powershell";
+        string args = $@"git branch --list --ignore-case";
+
+        var result = await Cli.Wrap(cmd)
+                              .WithWorkingDirectory(workingDirectory)
+                              .WithArguments(args)
+                              .ExecuteBufferedAsync();
+
+        var error = result.StandardError;
+        if (!string.IsNullOrEmpty(error))
+        {
+            throw new Exception($"Git error: {error}");
+        }
+
+        var output = result.StandardOutput;
+
+        //Parse into a list
+        List<string> diffList = output.Split("\n").Where(b=>(!string.IsNullOrEmpty(b))).ToList();
+
+        return diffList;
     }
 
     public async Task<List<string>> RunGitDiffsAsync(string workingDirectory, string currentBranch, string sourceBranch)
