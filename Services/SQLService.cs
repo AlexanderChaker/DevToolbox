@@ -1,10 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using DeployGitBranch.Repos;
-using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using CliWrap;
 using CliWrap.Buffered;
-using System;
 
 namespace DeployGitBranch.Services;
 
@@ -67,30 +65,6 @@ public class SQLService: ISQLService
 
         return databases;
     }
-
-    public List<string> GetAbsolutFileList(string workingDirectory, List<string> relativeFileList)
-    {
-        if (string.IsNullOrEmpty(workingDirectory))
-        {
-            throw new Exception("Working Directory needs to be set");
-        }
-
-        List<string> absoluteFileList = new();
-
-        foreach (string file in relativeFileList)
-        {
-            if (string.IsNullOrWhiteSpace(file))
-            {
-                continue;
-            }
-
-            string absoluteFilePath = new DirectoryInfo(Path.Combine(workingDirectory, file)).FullName; //This normalizes the Windows and Linux paths
-            absoluteFileList.Add(absoluteFilePath);
-        }
-
-        return absoluteFileList;
-    }
-
 
     //This proc was hanging when running a sql query that returns a 50k+ chars. Specifically this one ".\Sentient.Database\Scripts\142300_BWR_IsBillingAddress\99_CreateMasks.sql"
     //public async Task<List<string>> RunSQLQueriesAsync(List<string> queryList)

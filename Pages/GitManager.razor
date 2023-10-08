@@ -1,0 +1,161 @@
+﻿@using Services;
+@using Microsoft.Extensions.Logging;
+@using CommunityToolkit.Maui.Storage;
+
+@inject ILogger<DeployGitBranchComp> Logger;
+@inject IGitService gitService;
+
+<h4>Git</h4>
+
+<div>
+    <InputCheckbox @bind-Value=@useYaml> </InputCheckbox> <label> Load Yaml </label> <br />
+    <InputText type="text" style="width:500px" @bind-Value=@workingDirectory readonly="true"> </InputText>
+    <button button class="btn btn-primary" @onclick="SetWorkingDirectoryAsync">Set Working Directory</button> <img src="images/checkbox.png" style="width:25px;height:25px" /> <br />
+
+    <table>
+        <tr>
+            <td><label> Current Branch </label> </td>
+            <td>
+                <InputSelect id="currentBranch" style="width:100px" @bind-Value=@currentBranch>
+                    @foreach (string name in gitBranches)
+                    {
+                        <option value=@name>@name</option>
+                    }
+                </InputSelect>
+            </td>
+        </tr>
+        <tr>
+            <td><label> Source Branch </label></td>
+            <td>
+                <InputSelect id="sourceBranch" style="width:100px" @bind-Value=@sourceBranch>
+                    @foreach (string name in gitBranches)
+                    {
+                        <option value=@name>@name</option>
+                    }
+                </InputSelect>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div>
+    <button button class="btn btn-primary" @onclick="RunGitDiffsAsync">Git Diffs</button>
+</div>
+
+@code {
+
+    [Parameter]
+    public EventCallback<List<string>?> FileListChanged { get; set; }
+
+    [Parameter]
+    public List<string>? FileList { get; set; }
+
+    protected bool useYaml { get; set; } = false;
+    protected string yamlFilePath { get; set; } = "";
+    protected string workingDirectory { get; set; } = "";
+    protected string currentBranch { get; set; } = "dev";
+    protected string sourceBranch { get; set; } = "master";
+    protected List<string> gitBranches { get; set; } = new();
+
+    private async Task LoadFileAsync()
+    {
+        Logger.LogInformation("Button Pressed");
+
+        try
+        {
+            var result = await FilePicker.Default.PickAsync(PickOptions.Default);
+
+            if (result != null)
+            {
+                Logger.LogInformation("File location: {path}", result.FullPath);
+                yamlFilePath = result.FullPath;
+
+                if (useYaml)
+                {
+                    Logger.LogInformation("Trying to load YAML file at: {path}", yamlFilePath);
+                    var list = await gitService.ParseYAMLAsync(yamlFilePath);
+
+                    //Print results
+                    Logger.LogInformation("===========YAML FoldersToProcess===========");
+                    foreach (string line in list)
+                    {
+                        Logger.LogInformation(line);
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading file.");
+        }
+    }
+
+    private async Task SetWorkingDirectoryAsync()
+    {
+        try
+        {
+            var folder = await FolderPicker.PickAsync(default);
+
+            if (folder.IsSuccessful && !string.IsNullOrEmpty(folder?.Folder?.Path))
+            {
+                Logger.LogInformation("Folder location: {path}", folder.Folder.Path); //folder.Folder.Name
+                workingDirectory = folder.Folder.Path;
+
+                if (useYaml)
+                {
+                    Logger.LogInformation("Trying to load YAML file at: {path}", yamlFilePath);
+                    yamlFilePath = Path.Combine(folder.Folder.Path, "azure-pipelines.yml");
+
+                    if (!File.Exists(yamlFilePath))
+                    {
+                        Logger.LogWarning("Could not find \"azure-pipelines.yml\" in current path");
+                    }
+                    else
+                    {
+                        Logger.LogInformation("Found YAML file at: {path}", yamlFilePath);
+                        var list = await gitService.ParseYAMLAsync(yamlFilePath);
+                        Logger.LogInformation("Parsed YAML successfully");
+
+                        //Print results
+                        Logger.LogInformation("===========YAML FoldersToProcess===========");
+                        foreach (string line in list)
+                        {
+                            Logger.LogInformation(line);
+                        }
+                    }
+                }
+
+                gitBranches = await gitService.GetBranchesAsync(folder.Folder.Path);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading file.");
+        }
+    }
+
+    private async Task RunGitDiffsAsync()
+    {
+        if (string.IsNullOrEmpty(workingDirectory))
+        {
+            throw new Exception("Working Directory needs to be set");
+        }
+
+        var fileRelativePaths = await gitService.RunGitDiffsAsync(workingDirectory, currentBranch, sourceBranch);
+        FileList = gitService.GetAbsolutFileList(workingDirectory, fileRelativePaths);
+
+        await FileListChanged.InvokeAsync(FileList);
+
+        // if (FileList.Count > 0)
+        // {
+        //     EnableRunSQLBtn(true);
+        // }
+
+        //Print results
+        Logger.LogInformation("===========GIT Diffs dev-master===========");
+        foreach (string line in FileList)
+        {
+            Logger.LogInformation(line);
+        }
+    }
+}

@@ -30,7 +30,7 @@ public class GitService : IGitService
                                                 //.WithNamingConvention(PascalCaseNamingConvention.Instance) //TODO how to make it map case insensitive?
                                                 .Build();
                     AzurePipelineYaml yamlFile = yamlDeserializer.Deserialize<AzurePipelineYaml>(fileContents);
-                    string[] foldersToProcess = yamlFile.variables?["FoldersToProcess"].Split(',', StringSplitOptions.TrimEntries) ?? Array.Empty<string>();
+                    string[] foldersToProcess = yamlFile.variables?["FoldersToProcess"].Split(',', StringSplitOptions.TrimEntries) ?? [];
 
                     foreach (var pair in foldersToProcess)
                     {
@@ -56,7 +56,7 @@ public class GitService : IGitService
         }
 
         string cmd = "powershell";
-        string args = $@"git branch --list --ignore-case";
+        string args = $@"git for-each-ref --format='%(refname:short)' refs/heads/";
 
         var result = await Cli.Wrap(cmd)
                               .WithWorkingDirectory(workingDirectory)
@@ -104,6 +104,29 @@ public class GitService : IGitService
         List<string> diffList = output.Split("\r\n").ToList();
         
         return diffList;
+    }
+
+    public List<string> GetAbsolutFileList(string workingDirectory, List<string> relativeFileList)
+    {
+        if (string.IsNullOrEmpty(workingDirectory))
+        {
+            throw new Exception("Working Directory needs to be set");
+        }
+
+        List<string> absoluteFileList = new();
+
+        foreach (string file in relativeFileList)
+        {
+            if (string.IsNullOrWhiteSpace(file))
+            {
+                continue;
+            }
+
+            string absoluteFilePath = new DirectoryInfo(Path.Combine(workingDirectory, file)).FullName; //This normalizes the Windows and Linux paths
+            absoluteFileList.Add(absoluteFilePath);
+        }
+
+        return absoluteFileList;
     }
 
     private class AzurePipelineYaml

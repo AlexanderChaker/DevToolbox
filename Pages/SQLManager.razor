@@ -1,0 +1,81 @@
+﻿@using CommunityToolkit.Maui.Storage;
+@using Services;
+@using Microsoft.Extensions.Logging;
+
+@inject ILogger<DeployGitBranchComp> Logger;
+@inject ISQLService sqlService;
+
+<h4>Database</h4>
+
+<div>
+    <InputText id="serverUrl" type="text" style="width:500px" @bind-Value=@serverUrl> </InputText>
+    <button class="btn btn-primary" @onclick="SetServerURL">Set Server</button> <img src="images/checkbox.png" style="width:25px;height:25px" /> <br />
+
+    <table>
+        <tr>
+            <td><label> Default DB </label> </td>
+            <td>
+                <InputSelect id="dbName" style="width:100px" @bind-Value=@dbName>
+                    @foreach (string name in dbNames)
+                    {
+                        <option value=@name>@name</option>
+                    }
+                </InputSelect> <br />
+            </td>
+        </tr>
+    </table>
+
+</div>
+
+<div>
+    <button button class="btn btn-primary" @onclick="RunSQLQueries" @attributes=btnRunSQLEnabled>Run SQL</button>
+</div>
+
+@code {
+    [Parameter]
+    public List<string>? FileList { get; set; }
+
+    protected string serverUrl { get; set; } = "DEVSentientSQL.flexjetnet.com";
+    protected string dbName { get; set; } = "";
+    protected List<string> dbNames { get; set; } = new();
+    protected Dictionary<string, object>? btnRunSQLEnabled { get; set; } // https://learn.microsoft.com/en-us/aspnet/core/blazor/components/splat-attributes-and-arbitrary-parameters?view=aspnetcore-8.0
+
+    private async Task SetServerURL()
+    {
+        string connectionString = $"Server={serverUrl};Integrated Security=true;Multisubnetfailover=yes;Application Name=DevToolkit.DeployGitBranch;Encrypt=false";
+        sqlService.SetConnectionString(connectionString);
+
+        dbNames = await sqlService.GetDBListAsync();
+    }
+
+    private async Task RunSQLQueries()
+    {
+        if (FileList is null)
+        {
+            throw new Exception("File List needs to be generated");
+        }
+
+        var results = await sqlService.RunSQLQueriesAsync(serverUrl, FileList);
+
+        //Print results
+        Logger.LogInformation("===========Query Results===========");
+        foreach (string result in results)
+        {
+            Logger.LogInformation(result);
+        }
+    }
+
+    private void EnableRunSQLBtn(bool enable)
+    {
+        btnRunSQLEnabled = btnRunSQLEnabled ?? new Dictionary<string, object>();
+
+        if (enable)
+        {
+            btnRunSQLEnabled?.Clear();
+        }
+        else
+        {
+            btnRunSQLEnabled["disabled"] = "";
+        }
+    }
+}
