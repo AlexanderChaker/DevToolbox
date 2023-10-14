@@ -28,6 +28,9 @@
 </div>
 
 <div>
+    <label> @processedQueries </label>
+    <label> out of </label>
+    <label> @totalQueries </label> <br/>
     <button button class="btn btn-primary" @onclick="RunSQLQueries" @attributes=btnRunSQLEnabled>Run SQL</button>
 </div>
 
@@ -39,6 +42,9 @@
     protected string dbName { get; set; } = "";
     protected List<string> dbNames { get; set; } = new();
     protected Dictionary<string, object>? btnRunSQLEnabled { get; set; } // https://learn.microsoft.com/en-us/aspnet/core/blazor/components/splat-attributes-and-arbitrary-parameters?view=aspnetcore-8.0
+
+    private int processedQueries = 0;
+    private int totalQueries = 0;
 
     private async Task SetServerURL()
     {
@@ -55,6 +61,7 @@
             throw new Exception("File List needs to be generated");
         }
 
+        //TODO Run asynchronously while returning progress
         var results = await sqlService.RunSQLQueriesAsync(serverUrl, FileList);
 
         //Print results

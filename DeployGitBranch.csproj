@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CliWrap" Version="3.6.4" />
+    <PackageReference Include="Microsoft.Fast.Components.FluentUI" Version="3.2.0" />
     <PackageReference Include="YamlDotNet" Version="13.4.0" />
     <PackageReference Include="CommunityToolkit.Maui" Version="6.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="8.0.0-rc.1.23421.29" />

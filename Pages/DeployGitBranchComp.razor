@@ -1,19 +1,28 @@
 ﻿@page "/deploygitbranch"
 
 @using Microsoft.Extensions.Logging;
+@using Microsoft.Fast.Components.FluentUI;
 
 @inject ILogger<DeployGitBranchComp> Logger;
 
-<div style="border:thin;border-style:solid;margin-top:20px;margin-bottom:20px;padding:20px" @attributes=pageGitMangagerHidden>
-    <GitManager @bind-FileList=fileList />
-</div>
+<FluentTabs @bind-ActiveTabId="@activeId" OnTabChange="HandleOnTabChange">
+    <FluentTab Label="Git" Id="tab-1">
+        <GitManager @bind-FileList=fileList />
+    </FluentTab>
 
-<div style="border:thin;border-style:solid;margin-top:20px;margin-bottom:20px;padding:20px" @attributes=pageSQLMangagerHidden>
-    <SQLManager FileList=fileList/>
-</div>
+    <FluentTab Label="Database" Id="tab-2">
+        <SQLManager FileList=fileList />
+    </FluentTab>
+
+    <FluentTab Label="Results" Id="tab-3">
+
+    </FluentTab>
+
+</FluentTabs>
 
 <div>
-    <button button class="btn btn-primary" @onclick="()=>PageSelect(2)" >Next</button><br />
+    <button button class="btn btn-primary" @onclick=PreviousTab>Previous</button>
+    <button button class="btn btn-primary" @onclick=NextTab>Next</button><br />
 </div>
 
 <div>
@@ -27,28 +36,45 @@
     protected List<string>? fileList { get; set; } //Return FileList from GitManager and pass to SQLManager
     protected Dictionary<string, object> pageGitMangagerHidden { get; set; } = new();
     protected Dictionary<string, object> pageSQLMangagerHidden { get; set; } = new();
+    protected string activeId = "";
+    protected FluentTab? changedTo;
 
-    void PageSelect(int page)
+    protected List<string> Tabs { get; set; } = new()
     {
-        switch (page)
+        {"tab-1"},
+        {"tab-2"},
+        {"tab-3"}
+    };
+
+    private void HandleOnTabChange(FluentTab tab)
+    {
+        changedTo = tab;
+    }
+
+    void PreviousTab()
+    {
+        var currentIndex = Tabs.IndexOf(activeId);
+        if (currentIndex - 1 < 0)
         {
-            case 1:
-                pageGitMangagerHidden.Clear();
-                pageSQLMangagerHidden["hidden"] = "";
-                break;
-            case 2:
-                pageGitMangagerHidden["hidden"] = "";
-                pageSQLMangagerHidden.Clear();
-                break;
-            default:
-                pageGitMangagerHidden.Clear();
-                pageSQLMangagerHidden["hidden"] = "";
-                break;
-        };
+            return;
+        }
+
+        activeId = Tabs[currentIndex - 1];
+    }
+
+    void NextTab()
+    {
+        var currentIndex = Tabs.IndexOf(activeId);
+        if ((currentIndex < 0) || currentIndex + 1 >= Tabs.Count)
+        {
+            return;
+        }
+
+        activeId = Tabs[currentIndex + 1];
     }
 
     protected override void OnInitialized()
     {
-        PageSelect(1);
+        activeId = "tab-1";
     }
 }
