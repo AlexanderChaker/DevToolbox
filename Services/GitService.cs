@@ -1,11 +1,20 @@
 ﻿using CliWrap;
 using CliWrap.Buffered;
+using DeployGitBranch.Repos;
+using Microsoft.Extensions.Logging;
 using YamlDotNet.Serialization;
 
 namespace DeployGitBranch.Services;
 
 public class GitService : IGitService
 {
+    private readonly ILogger<MyDbContext> _logger;
+
+    public GitService(ILogger<MyDbContext> Logger)
+    {
+        _logger = Logger;
+    }
+
     public async Task<List<string>> ParseYAMLAsync(string filePath)
     {
         List<string> result = new();
@@ -66,6 +75,7 @@ public class GitService : IGitService
         var error = result.StandardError;
         if (!string.IsNullOrEmpty(error))
         {
+            _logger.LogError(@"Git error: {error}", error);
             throw new Exception($"Git error: {error}");
         }
 
@@ -84,6 +94,9 @@ public class GitService : IGitService
             throw new Exception("Working Directory needs to be set");
         }
 
+        await PullLatestBranch(workingDirectory, sourceBranch);
+        await PullLatestBranch(workingDirectory, currentBranch);//This has to be checked out last
+
         string cmd = "powershell";
         string args = $@"git diff --diff-filter=d --name-only {sourceBranch} {currentBranch} | Where-Object {{$_ -like '*.sql'}}";
 
@@ -95,7 +108,8 @@ public class GitService : IGitService
         var error = result.StandardError;
         if (!string.IsNullOrEmpty(error))
         {
-            throw new Exception($"Git error: {error}");
+            _logger.LogError(@"Git error: {error}", error);
+            //throw new Exception($"Git error: {error}");
         }
 
         var output = result.StandardOutput;
@@ -127,6 +141,56 @@ public class GitService : IGitService
         }
 
         return absoluteFileList;
+    }
+
+    private async Task PullLatestBranch(string workingDirectory, string branchName)
+    {
+        if (string.IsNullOrEmpty(branchName))
+        {
+            throw new Exception("Branch Name invalid");
+        }
+
+        _logger.LogInformation(@"Pulling latest branch: {branchName}", branchName);
+
+        string cmd = "powershell";
+        string args = $@"git checkout {branchName}; git pull --quiet;";
+
+        var result = await Cli.Wrap(cmd)
+                              .WithWorkingDirectory(workingDirectory)
+                              .WithArguments(args)
+                              .ExecuteBufferedAsync();
+
+        var error = result.StandardError;
+        if (!string.IsNullOrEmpty(error))
+        {
+            _logger.LogError(@"Git error: {error}", error);
+            //throw new Exception($"Git error: {error}");
+        }
+
+        var output = result.StandardOutput;
+        _logger.LogInformation(output);
+    }
+
+    public List<string> SortByYaml(string workingDirectory, List<string> yamlList, List<string> fileList)
+    {
+        List<string> result = new();
+
+        foreach (var folder in yamlList)
+        {
+            var fullFolderPath = Path.Combine(workingDirectory, folder);
+
+            if (string.IsNullOrEmpty(folder))
+            {
+                break;
+            }
+
+            foreach(string file in fileList.Where(f=>f.StartsWith(fullFolderPath)))
+            {
+                result.Add(file);
+            }
+        }
+
+        return result;
     }
 
     private class AzurePipelineYaml

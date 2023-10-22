@@ -5,8 +5,7 @@
 @inject ILogger<DeployGitBranchComp> Logger;
 @inject ISQLService sqlService;
 
-<h4>Database</h4>
-
+@* <h4>Database</h4> *@
 <div>
     <InputText id="serverUrl" type="text" style="width:500px" @bind-Value=@serverUrl> </InputText>
     <button class="btn btn-primary" @onclick="SetServerURL">Set Server</button> <img src="images/checkbox.png" style="width:25px;height:25px" /> <br />
@@ -38,6 +37,12 @@
     [Parameter]
     public List<string>? FileList { get; set; }
 
+    [Parameter]
+    public string Logs { get; set; } = "";
+
+    [Parameter]
+    public EventCallback<string> LogsChanged { get; set; }
+
     protected string serverUrl { get; set; } = "DEVSentientSQL.flexjetnet.com";
     protected string dbName { get; set; } = "";
     protected List<string> dbNames { get; set; } = new();
@@ -61,14 +66,19 @@
             throw new Exception("File List needs to be generated");
         }
 
-        //TODO Run asynchronously while returning progress
-        var results = await sqlService.RunSQLQueriesAsync(serverUrl, FileList);
-
-        //Print results
         Logger.LogInformation("===========Query Results===========");
-        foreach (string result in results)
+
+        foreach (string file in FileList)
         {
-            Logger.LogInformation(result);
+            var results = await sqlService.RunSQLQueryAsync(serverUrl, file);
+
+            //Print results
+            foreach (string result in results)
+            {
+                Logger.LogInformation(result);
+                Logs += result + "\n";
+                await LogsChanged.InvokeAsync(Logs);
+            }
         }
     }
 

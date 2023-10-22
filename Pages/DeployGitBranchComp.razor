@@ -6,18 +6,17 @@
 @inject ILogger<DeployGitBranchComp> Logger;
 
 <FluentTabs @bind-ActiveTabId="@activeId" OnTabChange="HandleOnTabChange">
-    <FluentTab Label="Git" Id="tab-1">
+    <FluentTab Label="Git" Id="tab-1" LabelStyle="font-size:25px;">
         <GitManager @bind-FileList=fileList />
     </FluentTab>
 
-    <FluentTab Label="Database" Id="tab-2">
-        <SQLManager FileList=fileList />
+    <FluentTab Label="Database" Id="tab-2" LabelStyle="font-size:25px;">
+        <SQLManager FileList=fileList @bind-Logs=console/>
     </FluentTab>
 
-    <FluentTab Label="Results" Id="tab-3">
+    <FluentTab Label="Results" Id="tab-3" LabelStyle="font-size:25px;">
 
     </FluentTab>
-
 </FluentTabs>
 
 <div>
@@ -27,7 +26,7 @@
 
 <div>
     <h4>Console</h4>
-    <InputTextArea type="text" style="width:50%; height:500px; font-size:12px;" @bind-Value=@console readonly="true"></InputTextArea> <br />
+    <InputTextArea type="text" style="width:70%; height:500px; font-size:12px;" @bind-Value=console readonly="true"></InputTextArea> <br />
 </div>
 
 @code {

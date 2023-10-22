@@ -5,7 +5,7 @@
 @inject ILogger<DeployGitBranchComp> Logger;
 @inject IGitService gitService;
 
-<h4>Git</h4>
+@* <h4>Git</h4> *@
 
 <div>
     <InputCheckbox @bind-Value=@useYaml> </InputCheckbox> <label> Load Yaml </label> <br />
@@ -52,6 +52,7 @@
 
     protected bool useYaml { get; set; } = false;
     protected string yamlFilePath { get; set; } = "";
+    protected List<string>? yamlFoldersToProcess { get; set; }
     protected string workingDirectory { get; set; } = "";
     protected string currentBranch { get; set; } = "dev";
     protected string sourceBranch { get; set; } = "master";
@@ -113,12 +114,12 @@
                     else
                     {
                         Logger.LogInformation("Found YAML file at: {path}", yamlFilePath);
-                        var list = await gitService.ParseYAMLAsync(yamlFilePath);
+                        yamlFoldersToProcess = await gitService.ParseYAMLAsync(yamlFilePath);
                         Logger.LogInformation("Parsed YAML successfully");
 
                         //Print results
                         Logger.LogInformation("===========YAML FoldersToProcess===========");
-                        foreach (string line in list)
+                        foreach (string line in yamlFoldersToProcess)
                         {
                             Logger.LogInformation(line);
                         }
@@ -143,6 +144,11 @@
 
         var fileRelativePaths = await gitService.RunGitDiffsAsync(workingDirectory, currentBranch, sourceBranch);
         FileList = gitService.GetAbsolutFileList(workingDirectory, fileRelativePaths);
+
+        if (useYaml && yamlFoldersToProcess is not null)
+        {
+            FileList = gitService.SortByYaml(workingDirectory, yamlFoldersToProcess, FileList);
+        }
 
         await FileListChanged.InvokeAsync(FileList);
 

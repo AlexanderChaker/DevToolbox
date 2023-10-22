@@ -10,6 +10,9 @@ public class SQLService: ISQLService
 {
     private MyDbContext? _myDbContext;
     private readonly ILogger<MyDbContext> _logger;
+    private int progress = 0;
+
+    public int Progress => progress;
 
     public SQLService(MyDbContext dbContext, ILogger<MyDbContext> Logger)
     {
@@ -107,6 +110,7 @@ public class SQLService: ISQLService
     //    return result;
     //}
 
+    //TODO: Make method return a continuous stream of logs
     public async Task<List<string>> RunSQLQueriesAsync(string serverUrl, List<string> fileList)
     {
         if (string.IsNullOrEmpty(serverUrl))
@@ -118,6 +122,7 @@ public class SQLService: ISQLService
         string args = "-S {0} -i {1}";
 
         List<string> results = new();
+        progress = 0;
 
         foreach (string file in fileList)
         {
@@ -133,9 +138,42 @@ public class SQLService: ISQLService
                 throw new Exception($"SQL error: {error}");
             }
 
+            progress++;
             var output = result.StandardOutput;
             results.Add(output);
         }
+
+        return results;
+    }
+
+    public async Task<List<string>> RunSQLQueryAsync(string serverUrl, string filePath)
+    {
+        if (string.IsNullOrEmpty(serverUrl))
+        {
+            throw new Exception("Server Url needs to be set");
+        }
+
+        string cmd = "sqlcmd.exe";
+        string args = "-S {0} -i {1}";
+
+        List<string> results = new();
+        progress = 0;
+
+        _logger.LogInformation("Deploying to {server} file {file}", serverUrl, filePath);
+
+        var result = await Cli.Wrap(cmd)
+                                .WithArguments(string.Format(args, serverUrl, filePath))
+                                .ExecuteBufferedAsync();
+
+        var error = result.StandardError;
+        if (!string.IsNullOrEmpty(error))
+        {
+            throw new Exception($"SQL error: {error}");
+        }
+
+        progress++;
+        var output = result.StandardOutput;
+        results.Add(output);
 
         return results;
     }
