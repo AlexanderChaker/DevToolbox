@@ -1,16 +1,14 @@
 ﻿@using Services;
 @using Microsoft.Extensions.Logging;
 @using CommunityToolkit.Maui.Storage;
+@using Microsoft.Fast.Components.FluentUI;
 
-@inject ILogger<DeployGitBranchComp> Logger;
+@inject ILogger<GitManager> Logger;
 @inject IGitService gitService;
 
-@* <h4>Git</h4> *@
-
 <div>
-    <InputCheckbox @bind-Value=@useYaml> </InputCheckbox> <label> Load Yaml </label> <br />
     <InputText type="text" style="width:500px" @bind-Value=@workingDirectory readonly="true"> </InputText>
-    <button button class="btn btn-primary" @onclick="SetWorkingDirectoryAsync">Set Working Directory</button> <img src="images/checkbox.png" style="width:25px;height:25px" /> <br />
+    <button button class="btn btn-primary" @onclick="SetWorkingDirectoryAsync">Set Working Directory</button> <br />
 
     <table>
         <tr>
@@ -22,6 +20,7 @@
                         <option value=@name>@name</option>
                     }
                 </InputSelect>
+                <FluentSwitch @bind-Value=useYaml Label="Load Yaml" />
             </td>
         </tr>
         <tr>
@@ -102,29 +101,7 @@
                 Logger.LogInformation("Folder location: {path}", folder.Folder.Path); //folder.Folder.Name
                 workingDirectory = folder.Folder.Path;
 
-                if (useYaml)
-                {
-                    Logger.LogInformation("Trying to load YAML file at: {path}", yamlFilePath);
-                    yamlFilePath = Path.Combine(folder.Folder.Path, "azure-pipelines.yml");
-
-                    if (!File.Exists(yamlFilePath))
-                    {
-                        Logger.LogWarning("Could not find \"azure-pipelines.yml\" in current path");
-                    }
-                    else
-                    {
-                        Logger.LogInformation("Found YAML file at: {path}", yamlFilePath);
-                        yamlFoldersToProcess = await gitService.ParseYAMLAsync(yamlFilePath);
-                        Logger.LogInformation("Parsed YAML successfully");
-
-                        //Print results
-                        Logger.LogInformation("===========YAML FoldersToProcess===========");
-                        foreach (string line in yamlFoldersToProcess)
-                        {
-                            Logger.LogInformation(line);
-                        }
-                    }
-                }
+                
 
                 gitBranches = await gitService.GetBranchesAsync(folder.Folder.Path);
             }
@@ -145,9 +122,34 @@
         var fileRelativePaths = await gitService.RunGitDiffsAsync(workingDirectory, currentBranch, sourceBranch);
         FileList = gitService.GetAbsolutFileList(workingDirectory, fileRelativePaths);
 
-        if (useYaml && yamlFoldersToProcess is not null)
+        if (useYaml)
         {
-            FileList = gitService.SortByYaml(workingDirectory, yamlFoldersToProcess, FileList);
+            Logger.LogInformation("Trying to load YAML file at: {path}", yamlFilePath);
+            yamlFilePath = Path.Combine(workingDirectory, "azure-pipelines.yml");
+
+            if (!File.Exists(yamlFilePath))
+            {
+                Logger.LogWarning("Could not find \"azure-pipelines.yml\" in current path");
+            }
+            else
+            {
+                Logger.LogInformation("Found YAML file at: {path}", yamlFilePath);
+                yamlFoldersToProcess = await gitService.ParseYAMLAsync(yamlFilePath);
+                Logger.LogInformation("Parsed YAML successfully");
+
+                //Print results
+                Logger.LogInformation("===========YAML FoldersToProcess===========");
+                foreach (string line in yamlFoldersToProcess)
+                {
+                    Logger.LogInformation(line);
+                }
+
+                if (yamlFoldersToProcess is not null)
+                {
+                    Logger.LogInformation("Sorting according to YAML");
+                    FileList = gitService.SortByYaml(workingDirectory, yamlFoldersToProcess, FileList);
+                }
+            }
         }
 
         await FileListChanged.InvokeAsync(FileList);

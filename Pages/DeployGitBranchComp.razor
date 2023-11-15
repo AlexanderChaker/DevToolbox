@@ -11,14 +11,14 @@
     </FluentTab>
 
     <FluentTab Label="Database" Id="tab-2" LabelStyle="font-size:25px;">
-        <SQLManager FileList=fileList @bind-Logs=console/>
+        <SQLManager FileList=fileList @bind-ServerUrl=serverUrl/>
     </FluentTab>
 
-    <FluentTab Label="Results" Id="tab-3" LabelStyle="font-size:25px;">
-
+    <FluentTab Label="Deploy" Id="tab-3" LabelStyle="font-size:25px;">
+        <DeploymentManager @bind-FileList=fileList @bind-Logs=console ServerUrl=@serverUrl />
     </FluentTab>
 </FluentTabs>
-
+<br/>
 <div>
     <button button class="btn btn-primary" @onclick=PreviousTab>Previous</button>
     <button button class="btn btn-primary" @onclick=NextTab>Next</button><br />
@@ -37,6 +37,7 @@
     protected Dictionary<string, object> pageSQLMangagerHidden { get; set; } = new();
     protected string activeId = "";
     protected FluentTab? changedTo;
+    protected string? serverUrl { get; set; } //Return serverUrl from SQLManager and pass to DeploymentManager
 
     protected List<string> Tabs { get; set; } = new()
     {

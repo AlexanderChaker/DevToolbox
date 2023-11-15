@@ -2,13 +2,12 @@
 @using Services;
 @using Microsoft.Extensions.Logging;
 
-@inject ILogger<DeployGitBranchComp> Logger;
+@inject ILogger<SQLManager> Logger;
 @inject ISQLService sqlService;
 
-@* <h4>Database</h4> *@
 <div>
     <InputText id="serverUrl" type="text" style="width:500px" @bind-Value=@serverUrl> </InputText>
-    <button class="btn btn-primary" @onclick="SetServerURL">Set Server</button> <img src="images/checkbox.png" style="width:25px;height:25px" /> <br />
+    <button class="btn btn-primary" @onclick="SetServerURL">Set Server</button> <br />
 
     <table>
         <tr>
@@ -23,14 +22,6 @@
             </td>
         </tr>
     </table>
-
-</div>
-
-<div>
-    <label> @processedQueries </label>
-    <label> out of </label>
-    <label> @totalQueries </label> <br/>
-    <button button class="btn btn-primary" @onclick="RunSQLQueries" @attributes=btnRunSQLEnabled>Run SQL</button>
 </div>
 
 @code {
@@ -38,61 +29,31 @@
     public List<string>? FileList { get; set; }
 
     [Parameter]
-    public string Logs { get; set; } = "";
+    public string? ServerUrl { get; set; }
 
     [Parameter]
-    public EventCallback<string> LogsChanged { get; set; }
+    public EventCallback<string> ServerUrlChanged { get; set; }
 
-    protected string serverUrl { get; set; } = "DEVSentientSQL.flexjetnet.com";
     protected string dbName { get; set; } = "";
     protected List<string> dbNames { get; set; } = new();
-    protected Dictionary<string, object>? btnRunSQLEnabled { get; set; } // https://learn.microsoft.com/en-us/aspnet/core/blazor/components/splat-attributes-and-arbitrary-parameters?view=aspnetcore-8.0
+    protected string serverUrl { get; set; } = "";
 
-    private int processedQueries = 0;
-    private int totalQueries = 0;
+    protected override async Task OnInitializedAsync()
+    {
+        serverUrl = await SecureStorage.Default.GetAsync("serverUrl")??"";
+    }
 
     private async Task SetServerURL()
     {
+        //TODO check if the connection is valid
         string connectionString = $"Server={serverUrl};Integrated Security=true;Multisubnetfailover=yes;Application Name=DevToolkit.DeployGitBranch;Encrypt=false";
         sqlService.SetConnectionString(connectionString);
 
         dbNames = await sqlService.GetDBListAsync();
+        
+        ServerUrl = serverUrl;
+        await SecureStorage.Default.SetAsync("serverUrl", serverUrl);
+        await ServerUrlChanged.InvokeAsync(ServerUrl);
     }
 
-    private async Task RunSQLQueries()
-    {
-        if (FileList is null)
-        {
-            throw new Exception("File List needs to be generated");
-        }
-
-        Logger.LogInformation("===========Query Results===========");
-
-        foreach (string file in FileList)
-        {
-            var results = await sqlService.RunSQLQueryAsync(serverUrl, file);
-
-            //Print results
-            foreach (string result in results)
-            {
-                Logger.LogInformation(result);
-                Logs += result + "\n";
-                await LogsChanged.InvokeAsync(Logs);
-            }
-        }
-    }
-
-    private void EnableRunSQLBtn(bool enable)
-    {
-        btnRunSQLEnabled = btnRunSQLEnabled ?? new Dictionary<string, object>();
-
-        if (enable)
-        {
-            btnRunSQLEnabled?.Clear();
-        }
-        else
-        {
-            btnRunSQLEnabled["disabled"] = "";
-        }
-    }
 }
