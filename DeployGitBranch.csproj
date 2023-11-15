@@ -43,20 +43,20 @@
     <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Azure.Identity" Version="1.10.4" />
     <PackageReference Include="CliWrap" Version="3.6.4" />
-    <PackageReference Include="Microsoft.Fast.Components.FluentUI" Version="3.2.0" />
-    <PackageReference Include="YamlDotNet" Version="13.4.0" />
-    <PackageReference Include="CommunityToolkit.Maui" Version="6.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="8.0.0-rc.1.23421.29" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebView" Version="8.0.0-rc.1.23421.29" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0-rc.1.23419.6" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.0-rc.1.23419.6" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0-rc.1.23419.4" />
+    <PackageReference Include="Microsoft.Fast.Components.FluentUI" Version="3.3.0" />
+    <PackageReference Include="YamlDotNet" Version="13.7.1" />
+    <PackageReference Include="CommunityToolkit.Maui" Version="6.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="8.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebView" Version="8.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
-    <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="8.0.0-rc.1.9171" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="8.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="8.0.3" />
   </ItemGroup>
   <ItemGroup>
     <None Include="wwwroot\images\checkbox.png" />
@@ -70,4 +70,7 @@
     <CodesignEntitlements>Platforms/MacCatalyst/Entitlements.Release.plist</CodesignEntitlements>
     <UseHardenedRuntime>true</UseHardenedRuntime>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Update="Microsoft.Maui.Controls.Compatibility" Version="8.0.3" />
+  </ItemGroup>
 </Project>
