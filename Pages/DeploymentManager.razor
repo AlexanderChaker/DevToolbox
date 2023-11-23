@@ -1,44 +1,61 @@
 ﻿@using CommunityToolkit.Maui.Storage;
 @using Services;
-@using Microsoft.Extensions.Logging;
-@using Microsoft.Fast.Components.FluentUI;
 
 @inject ILogger<DeploymentManager> Logger;
 @inject ISQLService sqlService;
+@inject IToastService ToastService;
 
-<FluentListbox TOption="string"
-               Items="@FileList"
-               Id="fileListbox"
-               Height="300px"
-               OptionValue="@(f=>f)"
-               OptionText="@(f=>f)" />
+<FluentStack Orientation=Orientation.Vertical Width="100%">
 
-<FluentMenu Anchor="fileListbox" Trigger="MouseButton.Right" Anchored="false" @onmenuchange=OnMenuChange>
-    <FluentMenuItem Label="Item 1" />
+    <div style="width:auto;min-width:500px">
+    <FluentListbox TOption="string"
+                   Items="@FileList"
+                   Id="fileListbox"
+                   Height="300px"
+                   Width="100%"
+                   OptionValue="@(f=>FileList?.IndexOf(f).ToString())"
+                   OptionText="@(f=>f)"
+                   @bind-Value="@SelectedValue"
+                   @bind-SelectedOption="@SelectedItem" />
+    </div>
 
-    <FluentMenuItem Label="Item 2">
-        <MenuItems>
-            <FluentMenuItem Label="Item 2.1">
-                <MenuItems>
-                    <FluentMenuItem Label="Item 2.1.1" />
-                    <FluentMenuItem Label="Item 2.1.2" />
-                </MenuItems>
-            </FluentMenuItem>
-            <FluentMenuItem Label="Item 2.2" />
-        </MenuItems>
-    </FluentMenuItem>
+    <FluentMenu Anchor="fileListbox" Trigger="MouseButton.Right" Anchored="false" @onmenuchange=OnMenuChange >
+        <FluentMenuItem Label="Item 1" />
 
-    <FluentMenuItem Label="Item 3" />
-</FluentMenu>
+        <FluentMenuItem Label="Item 2">
+            <MenuItems>
+                <FluentMenuItem Label="Item 2.1">
+                    <MenuItems>
+                        <FluentMenuItem Label="Item 2.1.1" />
+                        <FluentMenuItem Label="Item 2.1.2" />
+                    </MenuItems>
+                </FluentMenuItem>
+                <FluentMenuItem Label="Item 2.2" />
+            </MenuItems>
+        </FluentMenuItem>
 
-<p>@status</p>
+        <FluentMenuItem Label="Item 3" />
+    </FluentMenu>
 
-<div>
-    <label> @processedQueries </label>
-    <label> out of </label>
-    <label> @totalQueries </label> <br />
-    <button button class="btn btn-primary" @onclick="RunSQLQueries" @attributes=btnRunSQLEnabled>Run SQL</button>
-</div>
+    @* <p>@status</p> *@
+
+    @* <div>
+        @("Selected Value: " + SelectedValue) <br />
+        @("Selected Item: " + SelectedItem) <br />
+    </div> *@
+
+    <div>
+        <label> @processedQueries </label>
+        <label> out of </label>
+        <label> @(FileList?.Count ?? 0) </label>
+    </div>
+
+    <FluentCounterBadge Count=@(FileList?.Count??0) Appearance=Appearance.Lightweight BottomPosition=70 HorizontalPosition=70 ShowZero=true>
+        <FluentButton Appearance="Appearance.Accent" @onclick="RunSQLQueries" AdditionalAttributes=btnRunSQLEnabled>Run SQL</FluentButton>
+    </FluentCounterBadge>
+
+
+</FluentStack>
 
 @code {
     [Parameter]
@@ -56,35 +73,98 @@
     [Parameter]
     public EventCallback<string> LogsChanged { get; set; }
 
-    private int processedQueries = 0;
-    private int totalQueries = 0;
+    private decimal processedQueries = 0;
+    private decimal totalQueries = 0;
     protected Dictionary<string, object>? btnRunSQLEnabled { get; set; } // https://learn.microsoft.com/en-us/aspnet/core/blazor/components/splat-attributes-and-arbitrary-parameters?view=aspnetcore-8.0
+
+    private string SelectedValue { get; set; } = "";
+    private string SelectedItem { get; set; } = "";
+
+    private static string _id = "progressToast";
+    private CancellationTokenSource _cancel = new();
+    private ToastParameters<ProgressToastContent> _progressToastData = new()
+        {
+            Id = _id,
+            Intent = ToastIntent.Progress,
+            Title = "Running SQL Queries",
+            Timeout = 0,
+            TopAction = "Cancel",
+
+            OnTopAction = EventCallback.Factory.Create<ToastResult>(_id/*this*/, ClickedCancel),
+            Content = new ProgressToastContent()
+            {
+                Details = "This may take a while.",
+                Progress = 0
+            }
+        };
+
+    private static void ClickedCancel()
+    {
+        //DemoLogger.WriteLine($"Clicked cancel");
+    }
+
+    private void ResetProgressToast()
+    {
+        _cancel.Cancel();
+        _progressToastData.Content.Progress = 0;
+        ToastService.UpdateToast(_id, _progressToastData);
+        _cancel = new();
+        //EnableRunSQLBtn(false);
+    }
 
     private async Task RunSQLQueries()
     {
+        //Reset
+        Logs = string.Empty;
+        processedQueries = 0;
+        totalQueries = FileList?.Count??0;
+        ToastService.CloseToast(_id);
+
         if (FileList is null)
         {
-            throw new Exception("File List needs to be generated");
+            // throw new Exception("File List needs to be generated");
+            ToastService.ShowWarning("Generate Diffs first");
+            return;
         }
 
         if (ServerUrl is null)
         {
-            throw new Exception("Server URL needs to be set");
+            //throw new Exception("Server URL needs to be set");
+            ToastService.ShowWarning("Set Server URL first");
+            return;
         }
 
         Logger.LogInformation("===========Query Results===========");
 
-        foreach (string file in FileList)
+        try
         {
-            var results = await sqlService.RunSQLQueryAsync(ServerUrl, file);
+            ToastService.ShowProgressToast(_progressToastData);
 
-            //Print results
-            foreach (string result in results)
+            foreach (string file in FileList)
             {
-                Logger.LogInformation(result);
-                Logs += result + "\n";
-                await LogsChanged.InvokeAsync(Logs);
+                var results = await sqlService.RunSQLQueryAsync(ServerUrl, file);
+                
+                //Update Toast Progress
+                processedQueries++;
+                _progressToastData.Content.Progress = (int)((processedQueries/totalQueries)*100);
+                ToastService.UpdateToast(_id, _progressToastData);
+
+                //Print results
+                foreach (string result in results)
+                {
+                    Logger.LogInformation(result);
+                    Logs += result + "\n";
+                    await LogsChanged.InvokeAsync(Logs);
+                }
+
+                await Task.Delay(100, _cancel.Token);
             }
+            
+            ToastService.ShowSuccess("SQL Queries Deployed Successfully");
+        }
+        catch (Exception)
+        {
+            ToastService.ShowError("Could not run all SQL queries");
         }
     }
 

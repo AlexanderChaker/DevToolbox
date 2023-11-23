@@ -1,45 +1,27 @@
 ﻿@using Services;
-@using Microsoft.Extensions.Logging;
 @using CommunityToolkit.Maui.Storage;
-@using Microsoft.Fast.Components.FluentUI;
 
 @inject ILogger<GitManager> Logger;
 @inject IGitService gitService;
+@inject IToastService ToastService;
 
-<div>
-    <InputText type="text" style="width:500px" @bind-Value=@workingDirectory readonly="true"> </InputText>
-    <button button class="btn btn-primary" @onclick="SetWorkingDirectoryAsync">Set Working Directory</button> <br />
+<FluentStack Orientation=Orientation.Vertical VerticalAlignment="VerticalAlignment.Center">
+    <FluentStack Orientation=Orientation.Horizontal>
+        <FluentTextField @bind-Value=@workingDirectory ReadOnly=true Size="60" />
+        <FluentButton Appearance="Appearance.Accent" @onclick="SetWorkingDirectoryAsync">Set Working Directory</FluentButton>
+    </FluentStack>
 
-    <table>
-        <tr>
-            <td><label> Current Branch </label> </td>
-            <td>
-                <InputSelect id="currentBranch" style="width:100px" @bind-Value=@currentBranch>
-                    @foreach (string name in gitBranches)
-                    {
-                        <option value=@name>@name</option>
-                    }
-                </InputSelect>
-                <FluentSwitch @bind-Value=useYaml Label="Load Yaml" />
-            </td>
-        </tr>
-        <tr>
-            <td><label> Source Branch </label></td>
-            <td>
-                <InputSelect id="sourceBranch" style="width:100px" @bind-Value=@sourceBranch>
-                    @foreach (string name in gitBranches)
-                    {
-                        <option value=@name>@name</option>
-                    }
-                </InputSelect>
-            </td>
-        </tr>
-    </table>
-</div>
+    <FluentStack Orientation=Orientation.Horizontal VerticalAlignment="VerticalAlignment.Center">
+        <FluentCombobox Label="Current Branch" Autocomplete="ComboboxAutocomplete.Both" Items="gitBranches" @bind-Value="@currentBranch" Height="200px" Width="200px" />
+        <FluentSwitch @bind-Value=useYaml Label="Load Yaml" />
+    </FluentStack>
 
-<div>
-    <button button class="btn btn-primary" @onclick="RunGitDiffsAsync">Git Diffs</button>
-</div>
+    <FluentStack Orientation=Orientation.Horizontal VerticalAlignment="VerticalAlignment.Center">
+        <FluentCombobox Label="Source Branch" Autocomplete="ComboboxAutocomplete.Both" Items="gitBranches" @bind-Value="@sourceBranch" Height="200px" Width="200px" />
+    </FluentStack>
+
+    <FluentButton Appearance="Appearance.Accent" @onclick="RunGitDiffsAsync">Git Diffs</FluentButton>
+</FluentStack>
 
 @code {
 
@@ -101,10 +83,9 @@
                 Logger.LogInformation("Folder location: {path}", folder.Folder.Path); //folder.Folder.Name
                 workingDirectory = folder.Folder.Path;
 
-                
-
                 gitBranches = await gitService.GetBranchesAsync(folder.Folder.Path);
             }
+            ToastService.ShowSuccess("Directory Set Successfully");
         }
         catch (Exception ex)
         {
@@ -165,5 +146,8 @@
         {
             Logger.LogInformation(line);
         }
+
+        ToastService.ShowSuccess("Diffs Generated Sucessfully");
+
     }
 }

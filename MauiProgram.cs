@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using DeployGitBranch.Services;
 using CommunityToolkit.Maui;
+using Microsoft.FluentUI.AspNetCore.Components;
 
 namespace DeployGitBranch;
 
@@ -17,6 +18,7 @@ public static class MauiProgram
             });
 
         builder.Services.AddMauiBlazorWebView();
+        builder.Services.AddFluentUIComponents();
         builder.UseMauiCommunityToolkit(); //Used for the FolderPicker
 
         #if DEBUG

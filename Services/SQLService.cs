@@ -119,7 +119,7 @@ public class SQLService: ISQLService
         }
 
         string cmd = "sqlcmd.exe";
-        string args = "-S {0} -i {1}";
+        string args = "-S {0} -i \"{1}\"";
 
         List<string> results = new();
         progress = 0;
@@ -154,10 +154,9 @@ public class SQLService: ISQLService
         }
 
         string cmd = "sqlcmd.exe";
-        string args = "-S {0} -i {1}";
+        string args = "-S {0} -i \"{1}\"";
 
         List<string> results = new();
-        progress = 0;
 
         _logger.LogInformation("Deploying to {server} file {file}", serverUrl, filePath);
 
@@ -171,7 +170,6 @@ public class SQLService: ISQLService
             throw new Exception($"SQL error: {error}");
         }
 
-        progress++;
         var output = result.StandardOutput;
         results.Add(output);
 

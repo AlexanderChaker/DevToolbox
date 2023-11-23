@@ -1,33 +1,32 @@
-﻿@page "/deploygitbranch"
-
-@using Microsoft.Extensions.Logging;
-@using Microsoft.Fast.Components.FluentUI;
+﻿@using CommunityToolkit.Maui.Storage;
+@page "/deploygitbranch"
 
 @inject ILogger<DeployGitBranchComp> Logger;
 
-<FluentTabs @bind-ActiveTabId="@activeId" OnTabChange="HandleOnTabChange">
-    <FluentTab Label="Git" Id="tab-1" LabelStyle="font-size:25px;">
-        <GitManager @bind-FileList=fileList />
-    </FluentTab>
+<FluentStack VerticalGap=15 Orientation=Orientation.Vertical VerticalAlignment=VerticalAlignment.Center>
+    <FluentTabs @bind-ActiveTabId="@activeId" OnTabChange="HandleOnTabChange">
+        <FluentTab Label="Git" Id="tab-1" LabelStyle="font-size:25px;">
+            <GitManager @bind-FileList=fileList />
+        </FluentTab>
 
-    <FluentTab Label="Database" Id="tab-2" LabelStyle="font-size:25px;">
-        <SQLManager FileList=fileList @bind-ServerUrl=serverUrl/>
-    </FluentTab>
+        <FluentTab Label="Database" Id="tab-2" LabelStyle="font-size:25px;">
+            <SQLManager FileList=fileList @bind-ServerUrl=serverUrl />
+        </FluentTab>
 
-    <FluentTab Label="Deploy" Id="tab-3" LabelStyle="font-size:25px;">
-        <DeploymentManager @bind-FileList=fileList @bind-Logs=console ServerUrl=@serverUrl />
-    </FluentTab>
-</FluentTabs>
-<br/>
-<div>
-    <button button class="btn btn-primary" @onclick=PreviousTab>Previous</button>
-    <button button class="btn btn-primary" @onclick=NextTab>Next</button><br />
-</div>
+        <FluentTab Label="Deploy" Id="tab-3" LabelStyle="font-size:25px;" >
+            <DeploymentManager @bind-FileList=fileList @bind-Logs=console ServerUrl=@serverUrl />
+        </FluentTab>
+    </FluentTabs>
 
-<div>
-    <h4>Console</h4>
-    <InputTextArea type="text" style="width:70%; height:500px; font-size:12px;" @bind-Value=console readonly="true"></InputTextArea> <br />
-</div>
+    <FluentStack Orientation=Orientation.Horizontal VerticalAlignment=VerticalAlignment.Center>
+        <FluentSwitch id="showConsoleSwitch" Label="Show Console" Value=showConsole ValueChanged=ShowConsoleToggleAsync />
+        <FluentButton Title="Clear Logs" Appearance="Appearance.Stealth" IconEnd="@(new Icons.Regular.Size16.Delete())" AdditionalAttributes=hideConsoleAttribute OnClick=@(()=>ClearLogs()) />
+    </FluentStack>
+
+    <div @attributes=hideConsoleAttribute>
+        <FluentTextArea Appearance=FluentInputAppearance.Outline Cols=120 Rows=10 Resize="TextAreaResize.Vertical" ReadOnly=true @bind-Value=console AdditionalAttributes=@(new Dictionary<string,object>{["style"]="font-size:small; font-family:math; line-height:normal;"})></FluentTextArea>
+    </div>
+</FluentStack>
 
 @code {
 
@@ -38,43 +37,46 @@
     protected string activeId = "";
     protected FluentTab? changedTo;
     protected string? serverUrl { get; set; } //Return serverUrl from SQLManager and pass to DeploymentManager
-
-    protected List<string> Tabs { get; set; } = new()
-    {
-        {"tab-1"},
-        {"tab-2"},
-        {"tab-3"}
-    };
+    protected Dictionary<string, object>? hideConsoleAttribute { get; set; }
+    protected bool showConsole { get; set; }
 
     private void HandleOnTabChange(FluentTab tab)
     {
         changedTo = tab;
     }
 
-    void PreviousTab()
+    protected override async Task OnInitializedAsync()
     {
-        var currentIndex = Tabs.IndexOf(activeId);
-        if (currentIndex - 1 < 0)
-        {
-            return;
-        }
+        showConsole = ((await SecureStorage.Default.GetAsync("showConsole")) == "True") ? true : false;
+        await ShowConsoleAsync(showConsole);
 
-        activeId = Tabs[currentIndex - 1];
-    }
-
-    void NextTab()
-    {
-        var currentIndex = Tabs.IndexOf(activeId);
-        if ((currentIndex < 0) || currentIndex + 1 >= Tabs.Count)
-        {
-            return;
-        }
-
-        activeId = Tabs[currentIndex + 1];
-    }
-
-    protected override void OnInitialized()
-    {
         activeId = "tab-1";
+    }
+
+    private async Task ShowConsoleToggleAsync()
+    {
+        showConsole = !showConsole;
+        await ShowConsoleAsync(showConsole);
+    }
+
+    private async Task ShowConsoleAsync(bool show)
+    {
+        hideConsoleAttribute = hideConsoleAttribute ?? new Dictionary<string, object>();
+
+        if (show)
+        {
+            hideConsoleAttribute?.Clear();
+        }
+        else
+        {
+            hideConsoleAttribute["style"] = "visibility:hidden";
+        }
+
+        await SecureStorage.Default.SetAsync("showConsole", show.ToString());
+    }
+
+    private void ClearLogs()
+    {
+        console = string.Empty;
     }
 }

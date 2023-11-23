@@ -83,6 +83,7 @@ public class GitService : IGitService
 
         //Parse into a list
         List<string> diffList = output.Split("\n").Where(b=>(!string.IsNullOrEmpty(b))).ToList();
+        diffList.Sort();
 
         return diffList;
     }
