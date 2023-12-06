@@ -8,6 +8,5 @@ This tool deploys a branch to a database, using those steps:
 
 
 # TODO
-- Add a modifiable File List after the diffs have been created, and let the user confirm them before deploying
-- Catch all exceptions that crash the app
-- Remove the checkmark icons, add Toast notifications for feedback on long running tasks
+- Add a modifiable File List after the diffs have been created, with support for drag-and-drop and delete
+- Catch all exceptions that crash the app, replace with Toast notifications (Application Level 
