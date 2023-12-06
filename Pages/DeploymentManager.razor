@@ -19,7 +19,7 @@
                    @bind-SelectedOption="@SelectedItem" />
     </div>
 
-    <FluentMenu Anchor="fileListbox" Trigger="MouseButton.Right" Anchored="false" @onmenuchange=OnMenuChange >
+    @* <FluentMenu Anchor="fileListbox" Trigger="MouseButton.Right" Anchored="false" @onmenuchange=OnMenuChange >
         <FluentMenuItem Label="Item 1" />
 
         <FluentMenuItem Label="Item 2">
@@ -35,7 +35,7 @@
         </FluentMenuItem>
 
         <FluentMenuItem Label="Item 3" />
-    </FluentMenu>
+    </FluentMenu> *@
 
     @* <p>@status</p> *@
 
@@ -53,7 +53,6 @@
     <FluentCounterBadge Count=@(FileList?.Count??0) Appearance=Appearance.Lightweight BottomPosition=70 HorizontalPosition=70 ShowZero=true>
         <FluentButton Appearance="Appearance.Accent" @onclick="RunSQLQueries" AdditionalAttributes=btnRunSQLEnabled>Run SQL</FluentButton>
     </FluentCounterBadge>
-
 
 </FluentStack>
 

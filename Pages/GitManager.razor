@@ -84,8 +84,9 @@
                 workingDirectory = folder.Folder.Path;
 
                 gitBranches = await gitService.GetBranchesAsync(folder.Folder.Path);
+
+                ToastService.ShowSuccess("Directory Set Successfully");
             }
-            ToastService.ShowSuccess("Directory Set Successfully");
         }
         catch (Exception ex)
         {

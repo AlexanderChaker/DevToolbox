@@ -1,14 +1,14 @@
 ﻿@inherits LayoutComponentBase
 
 <div class="page">
-    <div class="sidebar">
-        <NavMenu />
+    <div class="sidebar" style="@IconMenuCssClass">
+        <NavMenu ShowIconMenu="ToggleIconMenu" />
     </div>
 
     <main>
-        <div class="top-row px-4">
+@*         <div class="top-row px-4">
             
-        </div>
+        </div> *@
 
         <article class="content px-4">
             @Body
@@ -17,3 +17,13 @@
         <FluentToastProvider MaxToastCount="10" />
     </main>
 </div>
+
+@code {
+    private bool _iconMenuActive { get; set; }
+    private string? IconMenuCssClass => _iconMenuActive ? "width: 80px;" : null;
+
+    protected void ToggleIconMenu(bool iconMenuActive)
+    {
+        _iconMenuActive = iconMenuActive;
+    }
+}
