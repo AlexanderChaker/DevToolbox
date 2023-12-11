@@ -9,4 +9,5 @@ This tool deploys a branch to a database, using those steps:
 
 # TODO
 - Add a modifiable File List after the diffs have been created, with support for drag-and-drop and delete
-- Catch all exceptions that crash the app, replace with Toast notifications (Application Level 
+- Catch all exceptions that crash the app, replace with Toast notifications (Application Level
+- Implement "Cancel" feature when running SQL queries

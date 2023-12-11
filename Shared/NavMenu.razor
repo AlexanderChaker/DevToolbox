@@ -37,11 +37,11 @@
     <div class="icon-menu-arrow">
         @if (!@IconMenuActive)
         {
-            <span class="oi oi-arrow-left" style="color: white;" @onclick="ToggleIconMenu"></span>
+            <span class="oi oi-arrow-left" style="color: white;" @onclick="ToggleIconMenuAsync"></span>
         }
         else
         {
-            <span class="oi oi-arrow-right" style="color: white;" @onclick="ToggleIconMenu"></span>
+            <span class="oi oi-arrow-right" style="color: white;" @onclick="ToggleIconMenuAsync"></span>
         }
     </div>
 </div>
@@ -64,7 +64,7 @@
     }
 
     //Method to toggle IconMenuActive bool and send bool via EventCallback
-    private async Task ToggleIconMenu()
+    private async Task ToggleIconMenuAsync()
     {
         IconMenuActive = !IconMenuActive;
         await ShowIconMenu.InvokeAsync(IconMenuActive);
@@ -72,6 +72,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        ToggleIconMenu();
+        await ToggleIconMenuAsync();
     }
 }
