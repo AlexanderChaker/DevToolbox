@@ -1,4 +1,5 @@
 ﻿@using CommunityToolkit.Maui.Storage;
+@using DeployGitBranch.Models
 @page "/"
 
 @inject ILogger<DeployGitBranchComp> Logger;
@@ -6,15 +7,15 @@
 <FluentStack VerticalGap=15 Orientation=Orientation.Vertical VerticalAlignment=VerticalAlignment.Center>
     <FluentTabs @bind-ActiveTabId="@activeId" OnTabChange="HandleOnTabChange">
         <FluentTab Label="Git" Id="tab-1" LabelStyle="font-size:25px;">
-            <GitManager @bind-FileList=fileList />
+            <GitManager @bind-DeploymentOptions=@deploymentOptions />
         </FluentTab>
 
         <FluentTab Label="Database" Id="tab-2" LabelStyle="font-size:25px;">
-            <SQLManager FileList=fileList @bind-ServerUrl=serverUrl />
+            <SQLManager @bind-DeploymentOptions=@deploymentOptions />
         </FluentTab>
 
         <FluentTab Label="Deploy" Id="tab-3" LabelStyle="font-size:25px;" >
-            <DeploymentManager @bind-FileList=fileList @bind-Logs=console ServerUrl=@serverUrl />
+            <DeploymentManager @bind-DeploymentOptions=@deploymentOptions />
         </FluentTab>
     </FluentTabs>
 
@@ -24,14 +25,13 @@
     </FluentStack>
 
     <div @attributes=hideConsoleAttribute>
-        <FluentTextArea Appearance=FluentInputAppearance.Outline Cols=120 Rows=10 Resize="TextAreaResize.Vertical" ReadOnly=true @bind-Value=console AdditionalAttributes=@(new Dictionary<string,object>{["style"]="font-size:small; font-family:math; line-height:normal;"})></FluentTextArea>
+        <FluentTextArea Appearance=FluentInputAppearance.Outline Cols=120 Rows=10 Resize="TextAreaResize.Vertical" ReadOnly=true @bind-Value=@deploymentOptions.Logs AdditionalAttributes=@(new Dictionary<string,object>{["style"]="font-size:small; font-family:math; line-height:normal;"})></FluentTextArea>
     </div>
 </FluentStack>
 
 @code {
 
-    protected string console { get; set; } = "";
-    protected List<string>? fileList { get; set; } //Return FileList from GitManager and pass to SQLManager
+    protected DeploymentOptions deploymentOptions { get; set; } = new();
     protected Dictionary<string, object> pageGitMangagerHidden { get; set; } = new();
     protected Dictionary<string, object> pageSQLMangagerHidden { get; set; } = new();
     protected string activeId = "";
@@ -77,6 +77,6 @@
 
     private void ClearLogs()
     {
-        console = string.Empty;
+        deploymentOptions.Logs = string.Empty;
     }
 }

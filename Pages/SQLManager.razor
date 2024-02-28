@@ -1,4 +1,5 @@
 ﻿@using CommunityToolkit.Maui.Storage;
+@using DeployGitBranch.Models
 @using Services;
 
 @inject ILogger<SQLManager> Logger;
@@ -18,13 +19,10 @@
 
 @code {
     [Parameter]
-    public List<string>? FileList { get; set; }
+    public DeploymentOptions DeploymentOptions { get; set; } = new();
 
     [Parameter]
-    public string? ServerUrl { get; set; }
-
-    [Parameter]
-    public EventCallback<string> ServerUrlChanged { get; set; }
+    public EventCallback<DeploymentOptions> DeploymentOptionsChanged { get; set; }
 
     protected string dbName { get; set; } = "";
     protected List<string> dbNames { get; set; } = new();
@@ -51,9 +49,9 @@
             return;
         }
         
-        ServerUrl = serverUrl;
+        DeploymentOptions.ServerUrl = serverUrl;
         await SecureStorage.Default.SetAsync("serverUrl", serverUrl);
-        await ServerUrlChanged.InvokeAsync(ServerUrl);
+        await DeploymentOptionsChanged.InvokeAsync(DeploymentOptions);
 
         ToastService.ShowSuccess("Server Set Successfully");
     }

@@ -1,4 +1,5 @@
 ﻿@using CommunityToolkit.Maui.Storage;
+@using DeployGitBranch.Models
 @using Services;
 
 @inject ILogger<DeploymentManager> Logger;
@@ -9,14 +10,15 @@
 
     <div style="width:auto;min-width:500px">
     <FluentListbox TOption="string"
-                   Items="@FileList"
+                   Items="@DeploymentOptions.FileList"
                    Id="fileListbox"
                    Height="300px"
                    Width="100%"
-                   OptionValue="@(f=>FileList?.IndexOf(f).ToString())"
+                   OptionValue="@(f=>DeploymentOptions.FileList?.IndexOf(f).ToString())"
                    OptionText="@(f=>f)"
                    @bind-Value="@SelectedValue"
-                   @bind-SelectedOption="@SelectedItem" />
+                   @bind-SelectedOption="@SelectedItem" 
+                   Label="File List"/>
     </div>
 
     @* <FluentMenu Anchor="fileListbox" Trigger="MouseButton.Right" Anchored="false" @onmenuchange=OnMenuChange >
@@ -44,13 +46,13 @@
         @("Selected Item: " + SelectedItem) <br />
     </div> *@
 
-    <div>
+    @* <div>
         <label> @processedQueries </label>
         <label> out of </label>
         <label> @(FileList?.Count ?? 0) </label>
-    </div>
+    </div> *@
 
-    <FluentCounterBadge Count=@(FileList?.Count??0) Appearance=Appearance.Lightweight BottomPosition=70 HorizontalPosition=70 ShowZero=true>
+    <FluentCounterBadge Count=@(DeploymentOptions.FileList?.Count??0) Appearance=Appearance.Lightweight BottomPosition=70 HorizontalPosition=70 ShowZero=true>
         <FluentButton Appearance="Appearance.Accent" @onclick="RunSQLQueries" AdditionalAttributes=btnRunSQLEnabled>Run SQL</FluentButton>
     </FluentCounterBadge>
 
@@ -58,19 +60,10 @@
 
 @code {
     [Parameter]
-    public EventCallback<List<string>?> FileListChanged { get; set; }
+    public DeploymentOptions DeploymentOptions { get; set; } = new();
 
     [Parameter]
-    public List<string>? FileList { get; set; }
-
-    [Parameter]
-    public string? ServerUrl { get; set; }
-
-    [Parameter]
-    public string Logs { get; set; } = "";
-
-    [Parameter]
-    public EventCallback<string> LogsChanged { get; set; }
+    public EventCallback<DeploymentOptions> DeploymentOptionsChanged { get; set; }
 
     private decimal processedQueries = 0;
     private decimal totalQueries = 0;
@@ -114,19 +107,19 @@
     private async Task RunSQLQueries()
     {
         //Reset
-        Logs = string.Empty;
+        DeploymentOptions.Logs = string.Empty;
         processedQueries = 0;
-        totalQueries = FileList?.Count??0;
+        totalQueries = DeploymentOptions.FileList?.Count??0;
         ToastService.CloseToast(_id);
 
-        if (FileList is null)
+        if (DeploymentOptions.FileList is null)
         {
             // throw new Exception("File List needs to be generated");
             ToastService.ShowWarning("Generate Diffs first");
             return;
         }
 
-        if (ServerUrl is null)
+        if (DeploymentOptions.ServerUrl is null)
         {
             //throw new Exception("Server URL needs to be set");
             ToastService.ShowWarning("Set Server URL first");
@@ -139,9 +132,9 @@
         {
             ToastService.ShowProgressToast(_progressToastData);
 
-            foreach (string file in FileList)
+            foreach (string file in DeploymentOptions.FileList)
             {
-                var results = await sqlService.RunSQLQueryAsync(ServerUrl, file);
+                var results = await sqlService.RunSQLQueryAsync(DeploymentOptions.ServerUrl, file);
 
                 //Update Toast Progress
                 processedQueries++;
@@ -152,8 +145,8 @@
                 foreach (string result in results)
                 {
                     Logger.LogInformation(result);
-                    Logs += $"[{DateTime.Now}] {result}\n";
-                    await LogsChanged.InvokeAsync(Logs);
+                    DeploymentOptions.Logs += $"[{DateTime.Now}] {result}\n";
+                    await DeploymentOptionsChanged.InvokeAsync(DeploymentOptions);
                 }
 
                 await Task.Delay(100, _cancel.Token);
