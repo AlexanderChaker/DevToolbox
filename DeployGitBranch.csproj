@@ -56,22 +56,22 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Azure.Identity" Version="1.10.4" />
-    <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="8.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebView" Version="8.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="8.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebView" Version="8.0.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.3" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="$(MauiVersion)" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="8.0.10" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="8.0.10" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="CliWrap" Version="3.6.4" />
-    <PackageReference Include="YamlDotNet" Version="13.7.1" />
-    <PackageReference Include="CommunityToolkit.Maui" Version="7.0.0" />
-    <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components" Version="4.1.1" />
-    <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components.Icons" Version="4.1.0" />
+    <PackageReference Include="CliWrap" Version="3.6.6" />
+    <PackageReference Include="YamlDotNet" Version="15.1.2" />
+    <PackageReference Include="CommunityToolkit.Maui" Version="7.0.1" />
+    <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components" Version="4.5.0" />
+    <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components.Icons" Version="4.5.0" />
   </ItemGroup>
   <ItemGroup>
     <None Update="README.md">
@@ -79,4 +79,7 @@
       <PackagePath>\</PackagePath>
     </None>
   </ItemGroup>
-</Project>
+  <ItemGroup>
+    <PackageReference Update="Microsoft.Maui.Controls.Compatibility" Version="8.0.10" />
+  </ItemGroup>
+  </Project>
