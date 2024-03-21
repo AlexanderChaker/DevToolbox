@@ -3,6 +3,7 @@ using DeployGitBranch.Repos;
 using Microsoft.Extensions.Logging;
 using CliWrap;
 using CliWrap.Buffered;
+using System.Security.Principal;
 
 namespace DeployGitBranch.Services;
 
@@ -10,9 +11,6 @@ public class SQLService: ISQLService
 {
     private MyDbContext? _myDbContext;
     private readonly ILogger<MyDbContext> _logger;
-    private int progress = 0;
-
-    public int Progress => progress;
 
     public SQLService(MyDbContext dbContext, ILogger<MyDbContext> Logger)
     {
@@ -49,10 +47,12 @@ public class SQLService: ISQLService
         }
 
         var contextOptions = new DbContextOptionsBuilder<MyDbContext>()
-                        .UseSqlServer(connectionString)
-                        .Options;
+                                .UseSqlServer(connectionString)
+                                .Options;
 
         _myDbContext = new MyDbContext(contextOptions);
+
+        var dbAuthenticationUser = GetCurrentUser();
     }
 
     public async Task<List<string>> GetDBListAsync()
@@ -111,6 +111,7 @@ public class SQLService: ISQLService
     //}
 
     //TODO: Make method return a continuous stream of logs
+    
     public async Task<List<string>> RunSQLQueriesAsync(string serverUrl, List<string> fileList)
     {
         if (string.IsNullOrEmpty(serverUrl))
@@ -122,7 +123,6 @@ public class SQLService: ISQLService
         string args = "-S {0} -i \"{1}\"";
 
         List<string> results = new();
-        progress = 0;
 
         foreach (string file in fileList)
         {
@@ -138,7 +138,6 @@ public class SQLService: ISQLService
                 throw new Exception($"SQL error: {error}");
             }
 
-            progress++;
             var output = result.StandardOutput;
             results.Add(output);
         }
@@ -174,5 +173,11 @@ public class SQLService: ISQLService
         results.Add(output);
 
         return results;
+    }
+
+    public string GetCurrentUser()
+    {
+        WindowsIdentity windowsIdentity = WindowsIdentity.GetCurrent();
+        return windowsIdentity.Name;
     }
 }

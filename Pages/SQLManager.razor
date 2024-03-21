@@ -36,7 +36,7 @@
     private async Task SetServerURL()
     {
         //TODO check if the connection is valid
-        string connectionString = $"Server={serverUrl};Integrated Security=true;Multisubnetfailover=yes;Application Name=DevToolkit.DeployGitBranch;Encrypt=false";
+        string connectionString = $"Server={serverUrl};Integrated Security=true;MultipleActiveResultSets=true;Multisubnetfailover=yes;Application Name=DevToolkit.DeployGitBranch;Encrypt=false";
         sqlService.SetConnectionString(connectionString);
 
         try
@@ -48,8 +48,9 @@
             ToastService.ShowError("Failed To Set Server");
             return;
         }
-        
+
         DeploymentOptions.ServerUrl = serverUrl;
+        DeploymentOptions.DBAuthenticationUser = sqlService.GetCurrentUser();
         await SecureStorage.Default.SetAsync("serverUrl", serverUrl);
         await DeploymentOptionsChanged.InvokeAsync(DeploymentOptions);
 

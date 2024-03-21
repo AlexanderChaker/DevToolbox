@@ -8,7 +8,15 @@
 
 <FluentStack Orientation=Orientation.Vertical Width="100%">
 
+    <FluentStack Orientation=Orientation.Horizontal VerticalAlignment="VerticalAlignment.Center">
+        <FluentTextField ReadOnly=true Label="Deploying on Server:" Size="60" @bind-Value=@DeploymentOptions.ServerUrl></FluentTextField>
+    </FluentStack>
+    <FluentStack Orientation=Orientation.Horizontal VerticalAlignment="VerticalAlignment.Center">
+        <FluentTextField ReadOnly=true Label="Running as User:" Size="60" @bind-Value=@DeploymentOptions.DBAuthenticationUser></FluentTextField>
+    </FluentStack>
+
     <div style="width:auto;min-width:500px">
+    <FluentLabel>File List</FluentLabel>
     <FluentListbox TOption="string"
                    Items="@DeploymentOptions.FileList"
                    Id="fileListbox"
@@ -17,8 +25,7 @@
                    OptionValue="@(f=>DeploymentOptions.FileList?.IndexOf(f).ToString())"
                    OptionText="@(f=>f)"
                    @bind-Value="@SelectedValue"
-                   @bind-SelectedOption="@SelectedItem" 
-                   Label="File List"/>
+                   @bind-SelectedOption="@SelectedItem"/>
     </div>
 
     @* <FluentMenu Anchor="fileListbox" Trigger="MouseButton.Right" Anchored="false" @onmenuchange=OnMenuChange >

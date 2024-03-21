@@ -6,16 +6,34 @@
 
 <FluentStack VerticalGap=15 Orientation=Orientation.Vertical VerticalAlignment=VerticalAlignment.Center>
     <FluentTabs @bind-ActiveTabId="@activeId" OnTabChange="HandleOnTabChange">
-        <FluentTab Label="Git" Id="tab-1" LabelStyle="font-size:25px;">
-            <GitManager @bind-DeploymentOptions=@deploymentOptions />
+        <FluentTab Id="tab-1">
+            <Header>
+                <FluentIcon Value="@(new Icons.Regular.Size24.CodeBlock())" />
+                <span style="font-size:25px;">Git</span>
+            </Header>
+            <Content>
+                <GitManager @bind-DeploymentOptions=@deploymentOptions />
+            </Content>
         </FluentTab>
 
-        <FluentTab Label="Database" Id="tab-2" LabelStyle="font-size:25px;">
-            <SQLManager @bind-DeploymentOptions=@deploymentOptions />
+        <FluentTab Id="tab-2">
+            <Header>
+                <FluentIcon Value="@(new Icons.Regular.Size24.Database())" />
+                <span style="font-size:25px;">Database</span>
+            </Header>
+            <Content>
+                <SQLManager @bind-DeploymentOptions=@deploymentOptions />
+            </Content>
         </FluentTab>
 
-        <FluentTab Label="Deploy" Id="tab-3" LabelStyle="font-size:25px;" >
-            <DeploymentManager @bind-DeploymentOptions=@deploymentOptions />
+        <FluentTab Id="tab-3">
+            <Header>
+                <FluentIcon Value="@(new Icons.Regular.Size24.AddSquare())" />
+                <span style="font-size:25px;">Deploy</span>
+            </Header>
+            <Content>
+                <DeploymentManager @bind-DeploymentOptions=@deploymentOptions />
+            </Content>
         </FluentTab>
     </FluentTabs>
 
