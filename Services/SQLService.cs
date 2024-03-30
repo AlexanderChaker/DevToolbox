@@ -177,7 +177,12 @@ public class SQLService: ISQLService
 
     public string GetCurrentUser()
     {
-        WindowsIdentity windowsIdentity = WindowsIdentity.GetCurrent();
-        return windowsIdentity.Name;
+        string username = string.Empty;
+
+        #if WINDOWS
+        username = WindowsIdentity.GetCurrent()?.Name??"";
+        #endif
+
+        return username;
     }
 }
