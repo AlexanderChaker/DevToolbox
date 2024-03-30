@@ -1,3 +1,6 @@
+# WARNING
+### DO NOT UPDATE \<MauiVersion\> TO GREATER THAN 8.0.7 UNTIL [THIS ISSUE](https://github.com/microsoft/fluentui-blazor/issues/1741) IS RESOLVED
+
 # DeployGitBranch
 This tool deploys a branch to a database, using those steps:
 - Select the Working Directory of the repo
@@ -13,4 +16,3 @@ This tool deploys a branch to a database, using those steps:
 - Catch exception when cannot connect to database or repo
 - Implement "Cancel" feature when running SQL queries
 - Refactor Logs, change the UI console and the way the services write to the Logs variable
-- Add "Running As User" and "Deploying on Server" on the Deployment tab
