@@ -7,4 +7,5 @@ public interface IGitService
     Task<List<string>> ParseYAMLAsync(string filePath);
     Task<List<string>> RunGitDiffsAsync(string workingDirectory, string currentBranch, string sourceBranch);
     List<string> SortByYaml(string workingDirectory, List<string> yamlList, List<string> fileList);
+    Task<bool> VerifyGitRepoAsync(string workingDirectory);
 }

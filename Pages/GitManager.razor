@@ -83,8 +83,16 @@
             if (folder.IsSuccessful && !string.IsNullOrEmpty(folder?.Folder?.Path))
             {
                 Logger.LogInformation("Folder location: {path}", folder.Folder.Path); //folder.Folder.Name
-                workingDirectory = folder.Folder.Path;
 
+                bool isGitRepo = await gitService.VerifyGitRepoAsync(folder.Folder.Path);
+
+                if (!isGitRepo)
+                {
+                    ToastService.ShowError("Not a Git Repo");
+                    return;
+                }
+
+                workingDirectory = folder.Folder.Path;
                 gitBranches = await gitService.GetBranchesAsync(folder.Folder.Path);
 
                 ToastService.ShowSuccess("Directory Set Successfully");
@@ -100,7 +108,8 @@
     {
         if (string.IsNullOrEmpty(workingDirectory))
         {
-            throw new Exception("Working Directory needs to be set");
+            ToastService.ShowError("Set Working Directory first");
+            return;
         }
 
         var fileRelativePaths = await gitService.RunGitDiffsAsync(workingDirectory, currentBranch, sourceBranch);

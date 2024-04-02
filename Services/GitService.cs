@@ -59,7 +59,7 @@ public class GitService : IGitService
 
     public async Task<List<string>> GetBranchesAsync(string workingDirectory)
     {
-        if (string.IsNullOrEmpty(workingDirectory))
+        if (string.IsNullOrWhiteSpace(workingDirectory))
         {
             throw new Exception("Working Directory needs to be set");
         }
@@ -90,13 +90,14 @@ public class GitService : IGitService
 
     public async Task<List<string>> RunGitDiffsAsync(string workingDirectory, string currentBranch, string sourceBranch)
     {
-        if (string.IsNullOrEmpty(workingDirectory))
+        if (string.IsNullOrWhiteSpace(workingDirectory))
         {
             throw new Exception("Working Directory needs to be set");
         }
 
-        await PullLatestBranch(workingDirectory, sourceBranch);
-        await PullLatestBranch(workingDirectory, currentBranch);//This has to be checked out last
+        await StashBranchChangesAsync(workingDirectory);
+        await PullLatestBranchAsync(workingDirectory, sourceBranch);
+        await PullLatestBranchAsync(workingDirectory, currentBranch);//This has to be checked out last
 
         string cmd = "powershell";
         string args = $@"git diff --diff-filter=d --name-only {sourceBranch} {currentBranch} | Where-Object {{$_ -like '*.sql'}}";
@@ -123,7 +124,7 @@ public class GitService : IGitService
 
     public List<string> GetAbsolutFileList(string workingDirectory, List<string> relativeFileList)
     {
-        if (string.IsNullOrEmpty(workingDirectory))
+        if (string.IsNullOrWhiteSpace(workingDirectory))
         {
             throw new Exception("Working Directory needs to be set");
         }
@@ -144,9 +145,9 @@ public class GitService : IGitService
         return absoluteFileList;
     }
 
-    private async Task PullLatestBranch(string workingDirectory, string branchName)
+    private async Task PullLatestBranchAsync(string workingDirectory, string branchName)
     {
-        if (string.IsNullOrEmpty(branchName))
+        if (string.IsNullOrWhiteSpace(branchName))
         {
             throw new Exception("Branch Name invalid");
         }
@@ -165,11 +166,70 @@ public class GitService : IGitService
         if (!string.IsNullOrEmpty(error))
         {
             _logger.LogError(@"Git error: {error}", error);
-            //throw new Exception($"Git error: {error}");
         }
 
         var output = result.StandardOutput;
         _logger.LogInformation(output);
+    }
+
+    private async Task StashBranchChangesAsync(string workingDirectory)
+    {
+        if (string.IsNullOrWhiteSpace(workingDirectory))
+        {
+            throw new Exception("Working Directory needs to be set");
+        }
+
+        _logger.LogInformation(@"Stashing uncommitted changes");
+
+        string stashMsg = "Stashed by DeployGitBranch app";
+        string cmd = "powershell";
+        string[] args = ["git", "stash", "-m", $"\"{stashMsg}\""];
+
+        var result = await Cli.Wrap(cmd)
+                              .WithWorkingDirectory(workingDirectory)
+                              .WithArguments(args)
+                              .WithValidation(CommandResultValidation.None)
+                              .ExecuteBufferedAsync();
+
+        var error = result.StandardError;
+        if (!string.IsNullOrEmpty(error))
+        {
+            _logger.LogError(@"Git error: {error}", error);
+        }
+
+        var output = result.StandardOutput;
+        _logger.LogInformation(output);
+    }
+
+    public async Task<bool> VerifyGitRepoAsync(string workingDirectory)
+    {
+        if (string.IsNullOrWhiteSpace(workingDirectory))
+        {
+            throw new Exception("Working Directory needs to be set");
+        }
+
+        string cmd = "powershell";
+        string args = $@"git status --short;";
+
+        var result = await Cli.Wrap(cmd)
+                      .WithWorkingDirectory(workingDirectory)
+                      .WithArguments(args)
+                      .WithValidation(CommandResultValidation.None)
+                      .ExecuteBufferedAsync();
+
+        var error = result.StandardError;
+        if (!string.IsNullOrEmpty(error))
+        {
+            _logger.LogError(@"Git error: {error}", error);
+            return false;
+        }
+        else
+        {
+            var output = result.StandardOutput;
+            _logger.LogInformation(@"Git repo verified: {output}", output);
+
+            return true;
+        }
     }
 
     public List<string> SortByYaml(string workingDirectory, List<string> yamlList, List<string> fileList)
