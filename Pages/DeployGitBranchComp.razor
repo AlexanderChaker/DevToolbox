@@ -5,13 +5,14 @@
 @inject ILogger<DeployGitBranchComp> Logger;
 
 <FluentStack VerticalGap=15 Orientation=Orientation.Vertical VerticalAlignment=VerticalAlignment.Center>
-    <FluentTabs @bind-ActiveTabId="@activeId" OnTabChange="HandleOnTabChange">
-        <FluentTab Id="tab-1">
+    <FluentTabs Class="tab" Size="TabSize.Small" Width="100px">
+        <FluentTab Class="tab" Id="tab-1">
             <Header>
                 <FluentIcon Value="@(new Icons.Regular.Size24.CodeBlock())" />
-                <span style="font-size:25px;">Git</span>
+                <span class="tab">Git</span>
             </Header>
             <Content>
+                <div class="whiteSpace"></div>
                 <GitManager @bind-DeploymentOptions=@deploymentOptions />
             </Content>
         </FluentTab>
@@ -19,9 +20,10 @@
         <FluentTab Id="tab-2">
             <Header>
                 <FluentIcon Value="@(new Icons.Regular.Size24.Database())" />
-                <span style="font-size:25px;">Database</span>
+                <span class="tab">Database</span>
             </Header>
             <Content>
+                <div class="whiteSpace"></div>
                 <SQLManager @bind-DeploymentOptions=@deploymentOptions />
             </Content>
         </FluentTab>
@@ -29,9 +31,10 @@
         <FluentTab Id="tab-3">
             <Header>
                 <FluentIcon Value="@(new Icons.Regular.Size24.AddSquare())" />
-                <span style="font-size:25px;">Deploy</span>
+                <span class="tab">Deploy</span>
             </Header>
             <Content>
+                <div class="whiteSpace"></div>
                 <DeploymentManager @bind-DeploymentOptions=@deploymentOptions />
             </Content>
         </FluentTab>
@@ -43,7 +46,7 @@
     </FluentStack>
 
     <div @attributes=hideConsoleAttribute>
-        <FluentTextArea Appearance=FluentInputAppearance.Outline Cols=120 Rows=10 Resize="TextAreaResize.Vertical" ReadOnly=true @bind-Value=@deploymentOptions.Logs AdditionalAttributes=@(new Dictionary<string,object>{["style"]="font-size:small; font-family:math; line-height:normal;"})></FluentTextArea>
+        <FluentTextArea Appearance=FluentInputAppearance.Outline Cols=120 Rows=10 Resize="TextAreaResize.Vertical" ReadOnly=true @bind-Value=@deploymentOptions.Logs AdditionalAttributes=@(new Dictionary<string,object>{["style"]="font-size:small; font-family:Cascadia Code; line-height:normal;"})></FluentTextArea>
     </div>
 </FluentStack>
 
@@ -52,23 +55,15 @@
     protected DeploymentOptions deploymentOptions { get; set; } = new();
     protected Dictionary<string, object> pageGitMangagerHidden { get; set; } = new();
     protected Dictionary<string, object> pageSQLMangagerHidden { get; set; } = new();
-    protected string activeId = "";
-    protected FluentTab? changedTo;
     protected string? serverUrl { get; set; } //Return serverUrl from SQLManager and pass to DeploymentManager
     protected Dictionary<string, object>? hideConsoleAttribute { get; set; }
     protected bool showConsole { get; set; }
 
-    private void HandleOnTabChange(FluentTab tab)
-    {
-        changedTo = tab;
-    }
 
     protected override async Task OnInitializedAsync()
     {
         showConsole = ((await SecureStorage.Default.GetAsync("showConsole")) == "True") ? true : false;
         await ShowConsoleAsync(showConsole);
-
-        activeId = "tab-1";
     }
 
     private async Task ShowConsoleToggleAsync()
@@ -87,7 +82,7 @@
         }
         else
         {
-            hideConsoleAttribute["style"] = "visibility:hidden";
+            hideConsoleAttribute["style"] = "display:none";
         }
 
         await SecureStorage.Default.SetAsync("showConsole", show.ToString());
