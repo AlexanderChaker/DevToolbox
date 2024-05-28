@@ -1,4 +1,4 @@
-﻿@using DeployGitBranch.Models
+﻿@using DeployGitBranch.Models;
 @using Services;
 @using CommunityToolkit.Maui.Storage;
 
@@ -8,7 +8,7 @@
 
 <FluentStack Orientation=Orientation.Vertical VerticalAlignment="VerticalAlignment.Center">
     <FluentStack Orientation=Orientation.Horizontal>
-        <FluentTextField @bind-Value=@workingDirectory ReadOnly=true Size="60" />
+        <FluentTextField @bind-Value=@DeploymentOptions.WorkingDirectory ReadOnly=true Size="60" />
         <FluentButton Appearance="Appearance.Accent" @onclick="SetWorkingDirectoryAsync">Set Working Directory</FluentButton>
     </FluentStack>
 
@@ -36,7 +36,7 @@
     protected bool useYaml { get; set; } = false;
     protected string yamlFilePath { get; set; } = "";
     protected List<string>? yamlFoldersToProcess { get; set; }
-    protected string workingDirectory { get; set; } = "";
+    //protected string workingDirectory { get; set; } = "";
     protected string currentBranch { get; set; } = "dev";
     protected string sourceBranch { get; set; } = "master";
     protected List<string> gitBranches { get; set; } = new();
@@ -82,7 +82,7 @@
 
             if (folder.IsSuccessful && !string.IsNullOrEmpty(folder?.Folder?.Path))
             {
-                Logger.LogInformation("Folder location: {path}", folder.Folder.Path); //folder.Folder.Name
+                Logger.LogInformation("Folder location: {path}", folder.Folder.Path);
 
                 bool isGitRepo = await gitService.VerifyGitRepoAsync(folder.Folder.Path);
 
@@ -92,7 +92,7 @@
                     return;
                 }
 
-                workingDirectory = folder.Folder.Path;
+                DeploymentOptions.WorkingDirectory = folder.Folder.Path;
                 gitBranches = await gitService.GetBranchesAsync(folder.Folder.Path);
 
                 ToastService.ShowSuccess("Directory Set Successfully");
@@ -106,19 +106,19 @@
 
     private async Task RunGitDiffsAsync()
     {
-        if (string.IsNullOrEmpty(workingDirectory))
+        if (string.IsNullOrEmpty(DeploymentOptions.WorkingDirectory))
         {
             ToastService.ShowError("Set Working Directory first");
             return;
         }
 
-        var fileRelativePaths = await gitService.RunGitDiffsAsync(workingDirectory, currentBranch, sourceBranch);
-        DeploymentOptions.FileList = gitService.GetAbsolutFileList(workingDirectory, fileRelativePaths);
+        var fileRelativePaths = await gitService.RunGitDiffsAsync(DeploymentOptions.WorkingDirectory, currentBranch, sourceBranch);
+        DeploymentOptions.FileList = gitService.GetAbsolutFileList(DeploymentOptions.WorkingDirectory, fileRelativePaths);
 
         if (useYaml)
         {
             Logger.LogInformation("Trying to load YAML file at: {path}", yamlFilePath);
-            yamlFilePath = Path.Combine(workingDirectory, "azure-pipelines.yml");
+            yamlFilePath = Path.Combine(DeploymentOptions.WorkingDirectory, "azure-pipelines.yml");
 
             if (!File.Exists(yamlFilePath))
             {
@@ -140,7 +140,7 @@
                 if (yamlFoldersToProcess is not null)
                 {
                     Logger.LogInformation("Sorting according to YAML");
-                    DeploymentOptions.FileList = gitService.SortByYaml(workingDirectory, yamlFoldersToProcess, DeploymentOptions.FileList);
+                    DeploymentOptions.FileList = gitService.SortByYaml(DeploymentOptions.WorkingDirectory, yamlFoldersToProcess, DeploymentOptions.FileList);
                 }
             }
         }

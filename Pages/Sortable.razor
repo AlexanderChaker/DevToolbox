@@ -1,0 +1,43 @@
+@page "/sortable"
+
+@using DeployGitBranch.Shared.SortableDemos
+
+@inject IJSRuntime JS
+
+<div class="has-background-light">
+    <div class="hero">
+        <div class="hero-body has-background-blazor has-text-white has-text-centered">
+            <h1 class="title is-size-1 has-text-white">Blazor Sortable</h1>
+            <p>An integration of the <a class="has-text-white has-text-weight-bold" href="https://github.com/SortableJS/Sortable">SortableJS library</a> with Blazor.</p>
+        </div>
+        
+            <a class="button is-dark" href="https://github.com/the-urlist/blazorsortable" target="_blank">
+                <span class="icon">
+                    <i class="fab fa-github"></i>
+                </span>
+                <span>View on GitHub</span>
+            </a>
+        
+    </div>
+    <section class="section has-background-white">
+        <SimpleList></SimpleList>
+    </section>
+    <section class="section">
+        <SharedLists></SharedLists>
+    </section>
+    <section class="section has-background-white">
+        <Cloning></Cloning>
+    </section>
+    <section class="section">
+        <DisablingSorting></DisablingSorting>
+    </section>
+        <section class="section has-background-white">
+        <DragHandles></DragHandles>
+    </section>
+    <section class="section">
+        <Filtering></Filtering>
+    </section>
+    <section class="section">
+        <ForceFallback></ForceFallback>
+    </section>
+</div>

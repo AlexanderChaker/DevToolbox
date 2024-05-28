@@ -1,5 +1,5 @@
 ﻿@using CommunityToolkit.Maui.Storage;
-@using DeployGitBranch.Models
+@using DeployGitBranch.Models;
 @using Services;
 
 @inject ILogger<DeploymentManager> Logger;
@@ -13,6 +13,9 @@
     </FluentStack>
     <FluentStack Orientation=Orientation.Horizontal VerticalAlignment="VerticalAlignment.Center">
         <FluentTextField ReadOnly=true Label="Running as User:" Size="60" @bind-Value=@DeploymentOptions.DBAuthenticationUser></FluentTextField>
+    </FluentStack>
+    <FluentStack Orientation=Orientation.Horizontal VerticalAlignment="VerticalAlignment.Center">
+        <FluentTextField ReadOnly=true Label="Working Directory:" Size="60" @bind-Value=@DeploymentOptions.WorkingDirectory></FluentTextField>
     </FluentStack>
 
     <div style="width:auto;min-width:500px">
@@ -28,36 +31,11 @@
                    @bind-SelectedOption="@SelectedItem"/>
     </div>
 
-    @* <FluentMenu Anchor="fileListbox" Trigger="MouseButton.Right" Anchored="false" @onmenuchange=OnMenuChange >
-        <FluentMenuItem Label="Item 1" />
+    <SortableFileList FileList=@DeploymentOptions.FileList />
 
-        <FluentMenuItem Label="Item 2">
-            <MenuItems>
-                <FluentMenuItem Label="Item 2.1">
-                    <MenuItems>
-                        <FluentMenuItem Label="Item 2.1.1" />
-                        <FluentMenuItem Label="Item 2.1.2" />
-                    </MenuItems>
-                </FluentMenuItem>
-                <FluentMenuItem Label="Item 2.2" />
-            </MenuItems>
-        </FluentMenuItem>
-
-        <FluentMenuItem Label="Item 3" />
-    </FluentMenu> *@
-
-    @* <p>@status</p> *@
-
-    @* <div>
-        @("Selected Value: " + SelectedValue) <br />
-        @("Selected Item: " + SelectedItem) <br />
-    </div> *@
-
-    @* <div>
-        <label> @processedQueries </label>
-        <label> out of </label>
-        <label> @(FileList?.Count ?? 0) </label>
-    </div> *@
+    <FluentMenu Anchor="fileListbox" Trigger="MouseButton.Right" Anchored="false" @onmenuchange=OnMenuChange >
+        <FluentMenuItem Label="Remove" OnClick="@((e) => Logger.LogInformation("Remove item Clicked e.Message: {e.Message} e.Filename: {e.Filename}"))" />
+    </FluentMenu>
 
     <FluentCounterBadge Count=@(DeploymentOptions.FileList?.Count??0) Appearance=Appearance.Lightweight BottomPosition=70 HorizontalPosition=70 ShowZero=true>
         <FluentButton Appearance="Appearance.Accent" @onclick="RunSQLQueries" AdditionalAttributes=btnRunSQLEnabled>Run SQL</FluentButton>
@@ -141,6 +119,9 @@
 
             foreach (string file in DeploymentOptions.FileList)
             {
+                Uri uri = new(file);
+                Uri baseUri = new("C:\\source_code\\Database\\Sentient.Database\\");
+                DeploymentOptions.Logs += $"--Deploying to {DeploymentOptions.ServerUrl} file {baseUri.MakeRelativeUri(uri)}\n";
                 var results = await sqlService.RunSQLQueryAsync(DeploymentOptions.ServerUrl, file);
 
                 //Update Toast Progress
@@ -158,7 +139,7 @@
 
                 await Task.Delay(100, _cancel.Token);
             }
-            
+
             ToastService.ShowSuccess("SQL Queries Deployed Successfully");
         }
         catch (Exception)
@@ -181,11 +162,11 @@
         }
     }
 
-    private string status = "";
-
     private void OnMenuChange(MenuChangeEventArgs args)
     {
-        if (args is not null && args.Value is not null)
-            status = $"Item \"{args.Value}\" clicked";
+        if (args?.Value is not null)
+        {
+            DeploymentOptions?.FileList?.Remove(args.Value);
+        }
     }
 }

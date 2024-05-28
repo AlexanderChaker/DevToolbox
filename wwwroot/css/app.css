@@ -82,3 +82,30 @@ a, .btn-link {
         padding-left: env(safe-area-inset-left);
     }
 }
+
+.has-border-light {
+    border: 1px solid #fff;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.has-border-dark {
+    border: 1px solid #ddd;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.has-background-blazor {
+    background-color: #592b8f !important;
+}
+
+.has-cursor-grab {
+    cursor: grab;
+}
+
+/* links should be white */
+a {
+    color: white;
+}
