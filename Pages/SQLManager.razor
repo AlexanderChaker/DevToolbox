@@ -36,7 +36,7 @@
     private async Task SetServerURL()
     {
         //TODO check if the connection is valid
-        string connectionString = $"Server={serverUrl};Integrated Security=true;MultipleActiveResultSets=true;Multisubnetfailover=yes;Application Name=DevToolkit.DeployGitBranch;Encrypt=false";
+        string connectionString = $"Server={serverUrl};Integrated Security=true;Multisubnetfailover=True;Application Name=DevToolkit.DeployGitBranch;Encrypt=false;";
         sqlService.SetConnectionString(connectionString);
 
         try
