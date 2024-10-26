@@ -1,11 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using DeployGitBranch.Repos;
 using Microsoft.Extensions.Logging;
 using CliWrap;
 using CliWrap.Buffered;
 using System.Security.Principal;
+using Repos;
 
-namespace DeployGitBranch.Services;
+namespace Services;
 
 public class SQLService: ISQLService
 {

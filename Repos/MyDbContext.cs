@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace DeployGitBranch.Repos;
+namespace Repos;
 
 public class MyDbContext : DbContext
 {

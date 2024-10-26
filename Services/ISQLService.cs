@@ -1,4 +1,4 @@
-﻿namespace DeployGitBranch.Services;
+﻿namespace Services;
 
 public interface ISQLService
 {

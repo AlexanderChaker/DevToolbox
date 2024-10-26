@@ -1,10 +1,10 @@
 ﻿using CliWrap;
 using CliWrap.Buffered;
-using DeployGitBranch.Repos;
 using Microsoft.Extensions.Logging;
+using Repos;
 using YamlDotNet.Serialization;
 
-namespace DeployGitBranch.Services;
+namespace Services;
 
 public class GitService : IGitService
 {

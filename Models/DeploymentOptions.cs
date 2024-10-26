@@ -1,4 +1,4 @@
-﻿namespace DeployGitBranch.Models;
+﻿namespace Models;
 
 public record class DeploymentOptions
 {

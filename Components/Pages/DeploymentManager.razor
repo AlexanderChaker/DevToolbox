@@ -1,5 +1,5 @@
 ﻿@using CommunityToolkit.Maui.Storage;
-@using DeployGitBranch.Models;
+@using Models;
 @using Services;
 
 @inject ILogger<DeploymentManager> Logger;
@@ -30,8 +30,6 @@
                    @bind-Value="@SelectedValue"
                    @bind-SelectedOption="@SelectedItem"/>
     </div>
-
-    <SortableFileList FileList=@DeploymentOptions.FileList />
 
     <FluentMenu Anchor="fileListbox" Trigger="MouseButton.Right" Anchored="false" @onmenuchange=OnMenuChange >
         <FluentMenuItem Label="Remove" OnClick="@((e) => Logger.LogInformation("Remove item Clicked e.Message: {e.Message} e.Filename: {e.Filename}"))" />
