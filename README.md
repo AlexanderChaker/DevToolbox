@@ -11,6 +11,8 @@ This tool deploys a branch to a database, using those steps:
 
 
 # TODO
+- Re-add Bootstrap after .net9 upgrade
+- Re-add collapsable nav menu
 - Add a modifiable File List after the diffs have been created, with support for drag-and-drop and delete
 - Catch all exceptions that crash the app, replace with Toast notifications (Application Level)
 - Catch exception when cannot connect to database or repo
