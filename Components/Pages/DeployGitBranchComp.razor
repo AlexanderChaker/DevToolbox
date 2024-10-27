@@ -5,11 +5,11 @@
 @inject ILogger<DeployGitBranchComp> Logger;
 
 <FluentStack VerticalGap=15 Orientation=Orientation.Vertical VerticalAlignment=VerticalAlignment.Center>
-    <FluentTabs Class="tab" Size="TabSize.Small" Width="100px">
-        <FluentTab Class="tab" Id="tab-1">
+    <FluentTabs>
+        <FluentTab Id="tab-1">
             <Header>
                 <FluentIcon Value="@(new Icons.Regular.Size24.CodeBlock())" />
-                <span class="tab">Git</span>
+                <span>Git</span>
             </Header>
             <Content>
                 <div class="whiteSpace"></div>
@@ -20,7 +20,7 @@
         <FluentTab Id="tab-2">
             <Header>
                 <FluentIcon Value="@(new Icons.Regular.Size24.Database())" />
-                <span class="tab">Database</span>
+                <span>Database</span>
             </Header>
             <Content>
                 <div class="whiteSpace"></div>
@@ -31,7 +31,7 @@
         <FluentTab Id="tab-3">
             <Header>
                 <FluentIcon Value="@(new Icons.Regular.Size24.AddSquare())" />
-                <span class="tab">Deploy</span>
+                <span>Deploy</span>
             </Header>
             <Content>
                 <div class="whiteSpace"></div>
@@ -58,7 +58,6 @@
     protected string? serverUrl { get; set; } //Return serverUrl from SQLManager and pass to DeploymentManager
     protected Dictionary<string, object>? hideConsoleAttribute { get; set; }
     protected bool showConsole { get; set; }
-
 
     protected override async Task OnInitializedAsync()
     {
