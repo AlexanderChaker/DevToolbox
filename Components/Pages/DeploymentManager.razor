@@ -35,7 +35,7 @@
         <FluentMenuItem Label="Remove" OnClick="@((e) => Logger.LogInformation("Remove item Clicked e.Message: {e.Message} e.Filename: {e.Filename}"))" />
     </FluentMenu>
 
-    <FluentCounterBadge Count=@(DeploymentOptions.FileList?.Count??0) Appearance=Appearance.Lightweight BottomPosition=70 HorizontalPosition=70 ShowZero=true>
+    <FluentCounterBadge Count=@(DeploymentOptions.FileList?.Count??0) Appearance=Appearance.Lightweight VerticalPosition=70 HorizontalPosition=75 ShowWhen=@(Count=>Count==0)>
         <FluentButton Appearance="Appearance.Accent" @onclick="RunSQLQueries" AdditionalAttributes=btnRunSQLEnabled>Run SQL</FluentButton>
     </FluentCounterBadge>
 
