@@ -1,40 +1,38 @@
 ﻿@using CommunityToolkit.Maui.Storage;
-@using Models
+@using Models;
 @page "/"
 
 @inject ILogger<DeployGitBranchComp> Logger;
 
 <FluentStack VerticalGap=15 Orientation=Orientation.Vertical VerticalAlignment=VerticalAlignment.Center>
     <FluentTabs>
-        <FluentTab Id="tab-1">
+        <FluentTab Id="tab-1" style="padding-top: 15px;">
             <Header>
                 <FluentIcon Value="@(new Icons.Regular.Size24.CodeBlock())" />
                 <span>Git</span>
             </Header>
             <Content>
-                <div class="whiteSpace"></div>
+                <div  ></div>
                 <GitManager @bind-DeploymentOptions=@deploymentOptions />
             </Content>
         </FluentTab>
 
-        <FluentTab Id="tab-2">
+        <FluentTab Id="tab-2" style="padding-top: 15px;">
             <Header>
                 <FluentIcon Value="@(new Icons.Regular.Size24.Database())" />
                 <span>Database</span>
             </Header>
             <Content>
-                <div class="whiteSpace"></div>
                 <SQLManager @bind-DeploymentOptions=@deploymentOptions />
             </Content>
         </FluentTab>
 
-        <FluentTab Id="tab-3">
+        <FluentTab Id="tab-3" style="padding-top: 15px;">
             <Header>
                 <FluentIcon Value="@(new Icons.Regular.Size24.AddSquare())" />
                 <span>Deploy</span>
             </Header>
             <Content>
-                <div class="whiteSpace"></div>
                 <DeploymentManager @bind-DeploymentOptions=@deploymentOptions />
             </Content>
         </FluentTab>
@@ -42,12 +40,9 @@
 
     <FluentStack Orientation=Orientation.Horizontal VerticalAlignment=VerticalAlignment.Center>
         <FluentSwitch id="showConsoleSwitch" Label="Show Console" Value=showConsole ValueChanged=ShowConsoleToggleAsync />
-        <FluentButton Title="Clear Logs" Appearance="Appearance.Stealth" IconEnd="@(new Icons.Regular.Size16.Delete())" AdditionalAttributes=hideConsoleAttribute OnClick=@(()=>ClearLogs()) />
+        <FluentButton Title="Clear Logs" Appearance="Appearance.Stealth" IconEnd="@(new Icons.Regular.Size16.Delete())" AdditionalAttributes=@clearLogsButtonStyle OnClick=@(()=>ClearLogs()) />
     </FluentStack>
-
-    <div @attributes=hideConsoleAttribute>
-        <FluentTextArea Appearance=FluentInputAppearance.Outline Cols=120 Rows=10 Resize="TextAreaResize.Vertical" ReadOnly=true @bind-Value=@deploymentOptions.Logs AdditionalAttributes=@(new Dictionary<string,object>{["style"]="font-size:small; font-family:Cascadia Code; line-height:normal;"})></FluentTextArea>
-    </div>
+    <FluentTextArea Appearance=FluentInputAppearance.Outline Cols=120 Rows=10 Resize="TextAreaResize.Vertical" ReadOnly=true @bind-Value=@deploymentOptions.Logs AdditionalAttributes=@consoleStyle></FluentTextArea>
 </FluentStack>
 
 @code {
@@ -56,8 +51,13 @@
     protected Dictionary<string, object> pageGitMangagerHidden { get; set; } = new();
     protected Dictionary<string, object> pageSQLMangagerHidden { get; set; } = new();
     protected string? serverUrl { get; set; } //Return serverUrl from SQLManager and pass to DeploymentManager
-    protected Dictionary<string, object>? hideConsoleAttribute { get; set; }
     protected bool showConsole { get; set; }
+
+    //CSS Styles
+    const string consoleDefaultStyle = "font-size:small; font-family:Cascadia Code; line-height:normal;";
+    const string constoleHiddenStyle = "display:none;";
+    private Dictionary<string, object> consoleStyle { get; set; } = new Dictionary<string,object>{["style"] = consoleDefaultStyle};
+    private Dictionary<string, object> clearLogsButtonStyle { get; set; } = new Dictionary<string,object>{["style"] = string.Empty};
 
     protected override async Task OnInitializedAsync()
     {
@@ -73,15 +73,15 @@
 
     private async Task ShowConsoleAsync(bool show)
     {
-        hideConsoleAttribute = hideConsoleAttribute ?? new Dictionary<string, object>();
-
         if (show)
         {
-            hideConsoleAttribute?.Clear();
+            consoleStyle["style"] = consoleDefaultStyle;
+            clearLogsButtonStyle["style"] = "visibility:visible;";
         }
         else
         {
-            hideConsoleAttribute["style"] = "display:none";
+            consoleStyle["style"] = constoleHiddenStyle;
+            clearLogsButtonStyle["style"] = "visibility:hidden;";
         }
 
         await SecureStorage.Default.SetAsync("showConsole", show.ToString());
