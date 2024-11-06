@@ -9,13 +9,13 @@
         <EnableDefaultCssItems>false</EnableDefaultCssItems>
         <UseRidGraph>true</UseRidGraph>
         <Nullable>enable</Nullable>
-        <PublishSingleFile>true</PublishSingleFile>
 
         <!-- Display name -->
         <ApplicationTitle>Deploy Git Branch</ApplicationTitle>
 
         <!-- App Identifier -->
         <ApplicationId>com.companyname.deploygitbranch</ApplicationId>
+        
         <!-- Versions -->
         <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
         <ApplicationVersion>1</ApplicationVersion>
