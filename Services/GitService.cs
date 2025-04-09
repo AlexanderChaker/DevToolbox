@@ -1,5 +1,6 @@
 ﻿using CliWrap;
 using CliWrap.Buffered;
+using DeployGitBranch.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using Repos;
 using YamlDotNet.Serialization;
