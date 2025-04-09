@@ -38,7 +38,7 @@
         <AppxSymbolPackageEnabled>False</AppxSymbolPackageEnabled>
         <GenerateTestArtifacts>True</GenerateTestArtifacts>
         <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
-        <DefaultLanguage>en</DefaultLanguage>
+        <DefaultLanguage>en-us</DefaultLanguage>
     </PropertyGroup>
 
     <ItemGroup>

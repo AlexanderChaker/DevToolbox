@@ -1,4 +1,5 @@
 ﻿@using CommunityToolkit.Maui.Storage;
+@using DeployGitBranch.Services.Interfaces;
 @using Models;
 @using Services;
 
@@ -36,7 +37,7 @@
     private async Task SetServerURL()
     {
         //TODO check if the connection is valid
-        string connectionString = $"Server={serverUrl};Integrated Security=true;Multisubnetfailover=True;Application Name=DevToolkit.DeployGitBranch;Encrypt=false;";
+        string connectionString = $"Server={serverUrl};Integrated Security=true;Multisubnetfailover=True;Application Name=DevToolkit.DeployGitBranch;Encrypt=true;TrustServerCertificate=True";
         sqlService.SetConnectionString(connectionString);
 
         try

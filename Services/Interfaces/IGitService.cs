@@ -1,4 +1,4 @@
-﻿namespace Services;
+﻿namespace DeployGitBranch.Services.Interfaces;
 
 public interface IGitService
 {
