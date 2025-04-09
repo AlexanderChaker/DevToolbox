@@ -81,6 +81,7 @@
 
     private void ResetProgressToast()
     {
+        ToastService.CloseToast(_id);
         _cancel.Cancel();
         _progressToastData.Content.Progress = 0;
         ToastService.UpdateToast(_id, _progressToastData);
@@ -93,8 +94,8 @@
         //Reset
         DeploymentOptions.Logs = string.Empty;
         processedQueries = 0;
-        totalQueries = DeploymentOptions.FileList?.Count??0;
-        ToastService.CloseToast(_id);
+        totalQueries = DeploymentOptions.FileList?.Count ?? 0;
+        ResetProgressToast();
 
         if (DeploymentOptions.FileList is null)
         {
