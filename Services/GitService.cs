@@ -156,21 +156,37 @@ public class GitService : IGitService
         _logger.LogInformation(@"Pulling latest branch: {branchName}", branchName);
 
         string cmd = "powershell";
-        string args = $@"git checkout {branchName}; git pull --quiet;";
+        string args = $@"git checkout {branchName}";
 
-        var result = await Cli.Wrap(cmd)
-                              .WithWorkingDirectory(workingDirectory)
-                              .WithArguments(args)
-                              .ExecuteBufferedAsync();
-
-        var error = result.StandardError;
-        if (!string.IsNullOrEmpty(error))
+        try
         {
-            _logger.LogError(@"Git error: {error}", error);
-        }
+            var result = await Cli.Wrap(cmd)
+                                  .WithWorkingDirectory(workingDirectory)
+                                  .WithArguments(args)
+                                  .ExecuteBufferedAsync();
 
-        var output = result.StandardOutput;
-        _logger.LogInformation(output);
+            var error = result.StandardError;
+            if (!string.IsNullOrEmpty(error))
+            {
+                _logger.LogError(@"Git error: {error}", error);
+            }
+
+            // Do we want to pull the latest commit, or use the local?
+            // cmd = "powershell";
+            // args = "git pull --quiet;";
+
+            // result = await Cli.Wrap(cmd)
+            //                   .WithWorkingDirectory(workingDirectory)
+            //                   .WithArguments(args)
+            //                   .ExecuteBufferedAsync();
+
+            var output = result.StandardOutput;
+            _logger.LogInformation("Git output: {output}", output);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(@"Git error: {error}", ex.Message);
+        }
     }
 
     private async Task StashBranchChangesAsync(string workingDirectory)
