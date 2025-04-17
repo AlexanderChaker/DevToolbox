@@ -1,6 +1,3 @@
-# WARNING
-### DO NOT UPDATE \<MauiVersion\> TO GREATER THAN 8.0.7 UNTIL [THIS ISSUE](https://github.com/microsoft/fluentui-blazor/issues/1741) IS RESOLVED
-
 # DeployGitBranch
 This tool deploys a branch to a database, using those steps:
 - Select the Working Directory of the repo
@@ -9,9 +6,7 @@ This tool deploys a branch to a database, using those steps:
 - Select the Current Branch and the Source Branch for GIT to do its diffs
 - The app will use the diffs to generate SQL statements and deploy on the server
 
-
 # TODO
-- Re-add Bootstrap after .net9 upgrade
 - Re-add collapsable nav menu
 - Add a modifiable File List after the diffs have been created, with support for drag-and-drop and delete
 - Catch all exceptions that crash the app, replace with Toast notifications (Application Level)
