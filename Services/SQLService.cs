@@ -4,7 +4,7 @@ using CliWrap;
 using CliWrap.Buffered;
 using System.Security.Principal;
 using Repos;
-using DeployGitBranch.Services.Interfaces;
+using DevToolbox.Services.Interfaces;
 
 namespace Services;
 

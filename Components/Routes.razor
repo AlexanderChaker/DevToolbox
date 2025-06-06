@@ -3,4 +3,15 @@
         <RouteView RouteData="@routeData" DefaultLayout="@typeof(Layout.MainLayout)" />
         <FocusOnNavigate RouteData="@routeData" Selector="h1" />
     </Found>
+    <NotFound>
+        @RedirectToDeployGitBranch()
+    </NotFound>
 </Router>
+
+@code {
+    [Inject] private NavigationManager? NavigationManager { get; set; }
+    private RenderFragment RedirectToDeployGitBranch() => builder =>
+    {
+        NavigationManager?.NavigateTo("/deploygitbranch", true);
+    };
+}

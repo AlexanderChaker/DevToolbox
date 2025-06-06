@@ -1,7 +1,7 @@
 ﻿using ObjCRuntime;
 using UIKit;
 
-namespace DeployGitBranch;
+namespace DevToolbox;
 
 public class Program
 {

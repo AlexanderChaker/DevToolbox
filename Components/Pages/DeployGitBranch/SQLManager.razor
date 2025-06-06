@@ -1,7 +1,9 @@
 ﻿@using CommunityToolkit.Maui.Storage;
-@using DeployGitBranch.Services.Interfaces;
+@using DevToolbox.Services.Interfaces;
 @using Models;
 @using Services;
+
+@namespace Components.Pages.DeployGitBranch
 
 @inject ILogger<SQLManager> Logger;
 @inject ISQLService sqlService;
@@ -37,7 +39,7 @@
     private async Task SetServerURL()
     {
         //TODO check if the connection is valid
-        string connectionString = $"Server={serverUrl};Integrated Security=true;Multisubnetfailover=True;Application Name=DevToolkit.DeployGitBranch;Encrypt=true;TrustServerCertificate=True";
+        string connectionString = $"Server={serverUrl};Integrated Security=true;Multisubnetfailover=True;Application Name=DevToolkit.DevToolbox;Encrypt=true;TrustServerCertificate=True";
         sqlService.SetConnectionString(connectionString);
 
         try

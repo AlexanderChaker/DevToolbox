@@ -1,6 +1,6 @@
 ﻿using CliWrap;
 using CliWrap.Buffered;
-using DeployGitBranch.Services.Interfaces;
+using DevToolbox.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using Repos;
 using YamlDotNet.Serialization;
@@ -182,7 +182,7 @@ public class GitService : IGitService
 
         _logger.LogInformation(@"Stashing uncommitted changes");
 
-        string stashMsg = "Stashed by DeployGitBranch app";
+        string stashMsg = "Stashed by DevToolbox app";
         string cmd = "powershell";
         string[] args = ["git", "stash", "-m", $"\"{stashMsg}\""];
 

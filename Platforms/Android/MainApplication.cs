@@ -1,7 +1,7 @@
 ﻿using Android.App;
 using Android.Runtime;
 
-namespace DeployGitBranch;
+namespace DevToolbox;
 
 [Application]
 public class MainApplication : MauiApplication

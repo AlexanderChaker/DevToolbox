@@ -1,4 +1,4 @@
-﻿namespace DeployGitBranch;
+﻿namespace DevToolbox;
 
 public partial class MainPage : ContentPage
 {

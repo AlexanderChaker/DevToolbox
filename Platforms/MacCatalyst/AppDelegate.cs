@@ -1,6 +1,6 @@
 ﻿using Foundation;
 
-namespace DeployGitBranch;
+namespace DevToolbox;
 
 [Register("AppDelegate")]
 public class AppDelegate : MauiUIApplicationDelegate

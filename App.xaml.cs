@@ -1,4 +1,4 @@
-﻿namespace DeployGitBranch;
+﻿namespace DevToolbox;
 
 public partial class App : Application
 {
@@ -9,6 +9,6 @@ public partial class App : Application
 
 	protected override Window CreateWindow(IActivationState? activationState)
 	{
-		return new Window(new MainPage());
+		return new Window(new MainPage()) { Title = "DevToolbox" };
 	}
 }
