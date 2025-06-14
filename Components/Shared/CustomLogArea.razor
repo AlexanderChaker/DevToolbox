@@ -1,0 +1,34 @@
+<div class="custom-log-area">
+    @if (!string.IsNullOrEmpty(LogValue))
+    {
+        <pre>@LogValue</pre>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string LogValue { get; set; } = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        // Generate fake logs for testing
+        LogValue = string.Join(Environment.NewLine, new[]
+        {
+            "[INFO] Application started.",
+            "[DEBUG] Initializing components...",
+            "[WARN] Low disk space detected.",
+            "[ERROR] Failed to connect to database.",
+            "[INFO] Application running.",
+            "[INFO] Application started.",
+            "[DEBUG] Initializing components...",
+            "[WARN] Low disk space detected.",
+            "[ERROR] Failed to connect to database.",
+            "[INFO] Application running.",
+            "[INFO] Application started.",
+            "[DEBUG] Initializing components...",
+            "[WARN] Low disk space detected.",
+            "[ERROR] Failed to connect to database.",
+            "[INFO] Application running."
+        });
+    }
+}

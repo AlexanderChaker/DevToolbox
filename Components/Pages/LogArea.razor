@@ -1,13 +1,7 @@
 @using DevToolbox.Services;
 
-@namespace Components.Pages
-
 @inject InMemoryLoggerService LogService;
 
-<FluentTextArea Appearance=FluentInputAppearance.Outline
-                Cols=120
-                Rows=10
-                Resize="TextAreaResize.Vertical"
-                ReadOnly=true
-                Value=@LogService.GetLogs()>
-</FluentTextArea>
+<link href="css/custom-log-area.css" rel="stylesheet" />
+
+<CustomLogArea LogValue="@LogService.GetLogs()" />
