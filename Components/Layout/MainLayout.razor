@@ -1,4 +1,6 @@
-﻿@inherits LayoutComponentBase
+﻿@using DevToolbox.Components.LogArea;
+
+@inherits LayoutComponentBase
 
 <div class="page">
     <div class="sidebar">
@@ -10,8 +12,8 @@
             @Body
         </article>
 
-        <section class="log-section" style="position: absolute; left: 0; right: 0; bottom: 0; height: 25vh; width: 100%; z-index: 10;">
-            <Components.Pages.LogArea />
+        <section class="log-section" style="position: absolute; left: 0; right: 0; bottom: 0; height: 25vh; width: 100%; z-index: 10; margin-left: var(--sidebar-width, 250px);">
+            <LogArea />
         </section>
 
         <FluentToastProvider MaxToastCount="10" />
