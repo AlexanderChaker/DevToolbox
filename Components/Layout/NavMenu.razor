@@ -1,4 +1,9 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.FluentUI.AspNetCore.Components.DesignTokens
+
+@inject AccentBaseColor AccentBaseColor
+
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">Dev Toolbox</a>
     </div>
@@ -15,4 +20,21 @@
             </NavLink>
         </div>
     </nav>
+    <div class="bottom-row">
+        <FluentMenuButton @ref=menubutton Text="Settings" Items="@items" OnMenuChanged="HandleOnMenuChanged"></FluentMenuButton>
+    </div>
 </div>
+
+@code {
+    private FluentMenuButton menubutton = new();
+
+    private Dictionary<string, string> items = new Dictionary<string, string>()
+    {
+        {"0078D4","Show Logs"}
+    };
+
+    private async Task HandleOnMenuChanged(MenuChangeEventArgs args)
+    {
+        await AccentBaseColor.SetValueFor(menubutton.Button!.Element, $"#{args.Id}".ToSwatch());
+    }
+}
