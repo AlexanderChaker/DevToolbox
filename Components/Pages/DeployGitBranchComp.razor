@@ -42,11 +42,6 @@
         </FluentTab>
     </FluentTabs>
 
-    <FluentStack Orientation=Orientation.Horizontal VerticalAlignment=VerticalAlignment.Center>
-        <FluentSwitch id="showConsoleSwitch" Label="Show Console" Value=showConsole ValueChanged=ShowConsoleToggleAsync />
-        <FluentButton Title="Clear Logs" Appearance="Appearance.Stealth" IconEnd="@(new Icons.Regular.Size16.Delete())" AdditionalAttributes=@clearLogsButtonStyle OnClick=@(()=>ClearLogs()) />
-    </FluentStack>
-    <FluentTextArea Appearance=FluentInputAppearance.Outline Cols=120 Rows=10 Resize="TextAreaResize.Vertical" ReadOnly=true @bind-Value=@deploymentOptions.Logs AdditionalAttributes=@consoleStyle></FluentTextArea>
 </FluentStack>
 
 @code {
