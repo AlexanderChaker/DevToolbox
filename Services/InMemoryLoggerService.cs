@@ -25,25 +25,25 @@ public class InMemoryLoggerService
     public string GetLogs()
     {
         //Create fake logs for testing
-        if (_logs.IsEmpty)
-        {
-            _logs = new ConcurrentQueue<string>(
-            [
-                "[INFO] Application started.",
-                "[DEBUG] Initializing components...",
-                "[WARN] Low disk space detected.",
-                "[ERROR] Failed to connect to database.",
-                "[INFO] Application running.",
-                "[DEBUG] Initializing components...",
-                "[WARN] Low disk space detected.",
-                "[ERROR] Failed to connect to database.",
-                "[INFO] Application running.",
-                "[DEBUG] Initializing components...",
-                "[WARN] Low disk space detected.",
-                "[ERROR] Failed to connect to database.",
-                "[INFO] Application running."
-            ]);
-        }
+        // if (_logs.IsEmpty)
+        // {
+        //     _logs = new ConcurrentQueue<string>(
+        //     [
+        //         "[INFO] Application started.",
+        //         "[DEBUG] Initializing components...",
+        //         "[WARN] Low disk space detected.",
+        //         "[ERROR] Failed to connect to database.",
+        //         "[INFO] Application running.",
+        //         "[DEBUG] Initializing components...",
+        //         "[WARN] Low disk space detected.",
+        //         "[ERROR] Failed to connect to database.",
+        //         "[INFO] Application running.",
+        //         "[DEBUG] Initializing components...",
+        //         "[WARN] Low disk space detected.",
+        //         "[ERROR] Failed to connect to database.",
+        //         "[INFO] Application running."
+        //     ]);
+        // }
 
         return string.Join("\n", _logs);
     }

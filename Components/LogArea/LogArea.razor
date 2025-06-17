@@ -10,7 +10,7 @@
 @implements IDisposable
 
 <div class="log-controls">
-    <FluentButton Appearance="Appearance.Lightweight" OnClick="@OnClearLogsAsync">
+    <FluentButton Appearance="Appearance.Lightweight" OnClick="@OnClearLogs">
         <FluentIcon Value="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Regular.Size16.Delete())" />
         Clear
     </FluentButton>
@@ -60,21 +60,18 @@
         }
     }
 
-    private async void OnLogsChanged(object? sender, string logs)
+    private void OnLogsChanged(object? sender, string logs)
     {
-        await InvokeAsync(async () =>
-        {
-            UpdateLogValue(logs);
-            StateHasChanged();
-        });
+        UpdateLogValue(logs);
+        StateHasChanged();
     }
 
-    private async Task OnRefreshLogsAsync()
+    private void OnRefreshLogs()
     {
         UpdateLogValue(LogService.GetLogs());
     }
 
-    private async Task OnClearLogsAsync()
+    private void OnClearLogs()
     {
         LogService.ClearLogs();
     }

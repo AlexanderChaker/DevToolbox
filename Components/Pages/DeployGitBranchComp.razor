@@ -84,9 +84,4 @@
 
         await SecureStorage.Default.SetAsync("showConsole", show.ToString());
     }
-
-    private void ClearLogs()
-    {
-        deploymentOptions.Logs = string.Empty;
-    }
 }
