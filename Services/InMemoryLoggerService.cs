@@ -4,7 +4,13 @@ namespace DevToolbox.Services;
 
 public class InMemoryLoggerService
 {
-    private readonly ConcurrentQueue<string> _logs = new();
+    private ConcurrentQueue<string> _logs = new();
+    public event EventHandler<string>? LogsChanged;
+
+    private void OnLogsChanged()
+    {
+        LogsChanged?.Invoke(this, GetLogs());
+    }
 
     public void Log(string message)
     {
@@ -13,10 +19,39 @@ public class InMemoryLoggerService
         {
             _logs.TryDequeue(out _);
         }
+        OnLogsChanged();
     }
 
-    public string GetLogs() => string.Join("\n", _logs);
+    public string GetLogs()
+    {
+        //Create fake logs for testing
+        if (_logs.IsEmpty)
+        {
+            _logs = new ConcurrentQueue<string>(
+            [
+                "[INFO] Application started.",
+                "[DEBUG] Initializing components...",
+                "[WARN] Low disk space detected.",
+                "[ERROR] Failed to connect to database.",
+                "[INFO] Application running.",
+                "[DEBUG] Initializing components...",
+                "[WARN] Low disk space detected.",
+                "[ERROR] Failed to connect to database.",
+                "[INFO] Application running.",
+                "[DEBUG] Initializing components...",
+                "[WARN] Low disk space detected.",
+                "[ERROR] Failed to connect to database.",
+                "[INFO] Application running."
+            ]);
+        }
 
-    public void ClearLogs() => _logs.Clear();
+        return string.Join("\n", _logs);
+    }
+
+    public void ClearLogs()
+    {
+        _logs.Clear();
+        OnLogsChanged();
+    }
 
 }

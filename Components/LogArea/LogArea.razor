@@ -1,9 +1,72 @@
 @using DevToolbox.Services;
+@using Microsoft.AspNetCore.Components;
 
 @namespace DevToolbox.Components.LogArea
 
-@inject InMemoryLoggerService LogService;
+@inject InMemoryLoggerService LogService
+@implements IDisposable
 
-<link href="css/custom-log-area.css" rel="stylesheet" />
+@* <div class="log-controls">
+    <FluentButton Appearance="Appearance.Lightweight" OnClick="@OnClearLogsAsync">
+        <FluentIcon Value="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Regular.Size16.Delete())" />
+        Clear
+    </FluentButton>
+    <FluentButton Appearance="Appearance.Lightweight" OnClick="@OnRefreshLogsAsync">
+        <FluentIcon Value="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Regular.Size16.ArrowSync())" />
+        Refresh
+    </FluentButton>
+</div> *@
 
-<CustomLogArea LogValue="@LogService.GetLogs()" />
+<div class="custom-log-area">
+    @if (!string.IsNullOrEmpty(LogValue))
+    {
+        <pre>@LogValue</pre>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string LogValue { get; set; } = string.Empty;
+
+    [Parameter]
+    public EventCallback<string> LogValueChanged { get; set; }
+
+    protected override void OnInitialized()
+    {
+        LogService.LogsChanged += OnLogsChanged;
+        UpdateLogValue(LogService.GetLogs());
+    }
+
+    private void OnLogsChanged(object? sender, string logs)
+    {
+        InvokeAsync(() =>
+        {
+            UpdateLogValue(logs);
+            StateHasChanged();
+        });
+    }
+
+    private async Task OnRefreshLogsAsync()
+    {
+        UpdateLogValue(LogService.GetLogs());
+    }
+
+    private async Task OnClearLogsAsync()
+    {
+        LogService.ClearLogs();
+    }
+
+    private void UpdateLogValue(string value)
+    {
+        if (LogValue != value)
+        {
+            LogValue = value;
+            LogValueChanged.InvokeAsync(value);
+        }
+    }
+
+    void IDisposable.Dispose()
+    {
+        LogService.LogsChanged -= OnLogsChanged;
+    }
+}
