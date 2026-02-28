@@ -1,4 +1,5 @@
 ﻿@using CommunityToolkit.Maui.Storage;
+@using DevToolbox.Components.LogArea
 @using Models;
 @using DevToolbox.Components.DeployGitBranch;
 
@@ -43,6 +44,10 @@
 
 </FluentStack>
 
+<div class="bottom-row" style="height: 100%;width:100%;">
+    <LogArea />
+</div>
+
 @code {
 
     protected DeploymentOptions deploymentOptions { get; set; } = new();
@@ -54,8 +59,16 @@
     //CSS Styles
     const string consoleDefaultStyle = "font-size:small; font-family:Cascadia Code; line-height:normal;";
     const string constoleHiddenStyle = "display:none;";
-    private Dictionary<string, object> consoleStyle { get; set; } = new Dictionary<string,object>{["style"] = consoleDefaultStyle};
-    private Dictionary<string, object> clearLogsButtonStyle { get; set; } = new Dictionary<string,object>{["style"] = string.Empty};
+    private Dictionary<string, object> consoleStyle { get; set; } = new Dictionary<string, object>
+    {
+        ["style"] =
+    consoleDefaultStyle
+    };
+    private Dictionary<string, object> clearLogsButtonStyle { get; set; } = new Dictionary<string, object>
+    {
+        ["style"] =
+    string.Empty
+    };
 
     protected override async Task OnInitializedAsync()
     {
