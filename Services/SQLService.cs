@@ -15,11 +15,6 @@ public class SQLService: ISQLService
 
     public SQLService(MyDbContext dbContext, ILogger<MyDbContext> Logger)
     {
-        //var contextOptions = new DbContextOptionsBuilder<MyDbContext>()
-        //                        .UseSqlServer(@"Server=DEVSentientSQL.flexjetnet.com;Integrated Security=true;MultipleActiveResultSets=true;Multisubnetfailover=yes;Application Name=Skynet.SentientSync.API-Dev;Encrypt=false")
-        //                        .Options;
-        //_myDbContext = new MyDbContext(contextOptions);
-
         _myDbContext = dbContext;
         _logger = Logger;
     }
@@ -69,47 +64,6 @@ public class SQLService: ISQLService
 
         return databases;
     }
-
-    //This proc was hanging when running a sql query that returns a 50k+ chars. Specifically this one ".\Sentient.Database\Scripts\142300_BWR_IsBillingAddress\99_CreateMasks.sql"
-    //public async Task<List<string>> RunSQLQueriesAsync(List<string> queryList)
-    //{
-    //    List<string> result = new();
-    //    string? error, output = "";
-
-    //    ProcessStartInfo startInfo = new()
-    //    {
-    //        WindowStyle = ProcessWindowStyle.Hidden,
-    //        CreateNoWindow = true,
-    //        WorkingDirectory = "C:\\source_code\\Database\\Sentient.Database\\",
-    //        FileName = "powershell",
-    //        //Arguments = ,
-    //        RedirectStandardOutput = true,
-    //        RedirectStandardError = true
-    //    };
-
-    //    Process process = new();
-    //    process.StartInfo = startInfo;
-    //    foreach (string query in queryList)
-    //    {
-    //        _logger.LogInformation("Running query: {query}", query);
-
-    //        process.StartInfo.Arguments = query;
-    //        process.Start();
-
-    //        error = process.StandardError.ReadLine();
-    //        if (!string.IsNullOrEmpty(error))
-    //        {
-    //            throw new Exception($"Git error: {error}");
-    //        }
-
-    //        output = process.StandardOutput.ReadLine();
-    //        await process.WaitForExitAsync();
-
-    //        result.Add(output??"");
-    //    }
-
-    //    return result;
-    //}
 
     //TODO: Make method return a continuous stream of logs
     

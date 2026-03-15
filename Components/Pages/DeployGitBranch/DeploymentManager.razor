@@ -122,7 +122,7 @@
             foreach (string file in DeploymentOptions.FileList)
             {
                 Uri uri = new(file);
-                Uri baseUri = new("C:\\source_code\\Database\\Sentient.Database\\");
+                Uri baseUri = new("C:\\");
                 DeploymentOptions.Logs += $"--Deploying to {DeploymentOptions.ServerUrl} file {baseUri.MakeRelativeUri(uri)}\n";
                 var results = await sqlService.RunSQLQueryAsync(DeploymentOptions.ServerUrl, file);
 
