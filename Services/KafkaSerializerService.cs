@@ -1,4 +1,5 @@
 using System.IO.Compression;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using DevToolbox.Services.Interfaces;
@@ -7,7 +8,8 @@ namespace Services;
 
 public class KafkaSerializerService : IKafkaSerializerService
 {
-    private static readonly JsonSerializerOptions PrettyOptions = new() { WriteIndented = true };
+    private static readonly JsonSerializerOptions PrettyOptions = new() { WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+    private static readonly JsonSerializerOptions CompactOptions = new() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
     public string DecompressGzip(string base64GzipString)
     {
@@ -32,31 +34,16 @@ public class KafkaSerializerService : IKafkaSerializerService
             return inputJson;
 
         // If the root has a "Message" property, try to decompress or parse it
-        if (node is JsonObject root && root.TryGetPropertyValue("Message", out var messageNode))
+        if (node is JsonObject root)
         {
-            if (messageNode is JsonValue mv && mv.TryGetValue<string>(out var messageStr))
+            ProcessMessageProperty(root);
+        }
+        else if (node is JsonArray rootArr)
+        {
+            foreach (var element in rootArr)
             {
-                var trimmed = messageStr.AsSpan().TrimStart();
-                if (trimmed.Length > 0 && (trimmed[0] == '{' || trimmed[0] == '['))
-                {
-                    // Escaped JSON string — parse directly
-                    var parsed = TryParseJson(messageStr);
-                    if (parsed is not null)
-                        root["Message"] = parsed;
-                }
-                else
-                {
-                    // Possibly gzip-compressed base64
-                    try
-                    {
-                        var decompressed = DecompressGzip(messageStr);
-                        root["Message"] = JsonNode.Parse(decompressed);
-                    }
-                    catch
-                    {
-                        // Not a valid gzip base64 string — leave as-is
-                    }
-                }
+                if (element is JsonObject obj)
+                    ProcessMessageProperty(obj);
             }
         }
 
@@ -69,6 +56,64 @@ public class KafkaSerializerService : IKafkaSerializerService
     {
         var span = s.AsSpan().TrimStart();
         return span.Length > 1 && (span[0] == '{' || span[0] == '[');
+    }
+
+    private void ProcessMessageProperty(JsonObject obj)
+    {
+        if (!obj.TryGetPropertyValue("Message", out var messageNode))
+            return;
+
+        if (messageNode is JsonValue mv && mv.TryGetValue<string>(out var messageStr))
+        {
+            var trimmed = messageStr.AsSpan().TrimStart();
+            if (trimmed.Length > 0 && (trimmed[0] == '{' || trimmed[0] == '['))
+            {
+                var parsed = TryParseJson(messageStr);
+                if (parsed is not null)
+                    obj["Message"] = parsed;
+            }
+            else
+            {
+                try
+                {
+                    var decompressed = DecompressGzip(messageStr);
+                    obj["Message"] = JsonNode.Parse(decompressed);
+                }
+                catch
+                {
+                    // Not a valid gzip base64 string — leave as-is
+                }
+            }
+        }
+    }
+
+    public string EscapeMessageProperty(string prettyJson)
+    {
+        var node = JsonNode.Parse(prettyJson);
+        if (node is null)
+            return prettyJson;
+
+        if (node is JsonObject root)
+            EscapeMessageInObject(root);
+        else if (node is JsonArray arr)
+        {
+            foreach (var element in arr)
+            {
+                if (element is JsonObject obj)
+                    EscapeMessageInObject(obj);
+            }
+        }
+
+        return node.ToJsonString(PrettyOptions);
+    }
+
+    private static void EscapeMessageInObject(JsonObject obj)
+    {
+        if (obj.TryGetPropertyValue("Message", out var messageNode) && messageNode is not JsonValue)
+        {
+            var serialized = messageNode!.ToJsonString(CompactOptions); //Remove CompactOptions to get escaped unicode characters. i.e. \u0022 instead of \"
+            obj["Message"] = serialized;
+        }
     }
 
     private static JsonNode? TryParseJson(string str)

@@ -42,7 +42,17 @@
                             Style="width: 100%; font-family: 'Cascadia Code', Consolas, monospace; font-size: 13px;" />
         </div>
         <div style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
-            <FluentLabel Typo="Typography.Body" Style="margin-bottom: 4px;">Output JSON</FluentLabel>
+            <FluentStack HorizontalGap="8" Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" Style="margin-bottom: 4px;">
+                <FluentLabel Typo="Typography.Body">Output JSON</FluentLabel>
+                <FluentButton Size="ButtonSize.Small" Appearance="Appearance.Outline" OnClick="@OnCopyOutput" Disabled="@(string.IsNullOrEmpty(outputJson))">
+                    <FluentIcon Value="@(new Icons.Regular.Size16.Copy())" Slot="start" />
+                    Copy
+                </FluentButton>
+                <FluentButton Size="ButtonSize.Small" Appearance="Appearance.Outline" OnClick="@OnCopyEscaped" Disabled="@(string.IsNullOrEmpty(outputJson))">
+                    <FluentIcon Value="@(new Icons.Regular.Size16.Copy())" Slot="start" />
+                    Copy Escaped
+                </FluentButton>
+            </FluentStack>
             <FluentTextArea @bind-Value="outputJson"
                             Rows="20"
                             Resize="TextAreaResize.Vertical"
@@ -93,6 +103,25 @@
         catch (Exception ex)
         {
             errorMessage = $"Conversion failed: {ex.Message}";
+        }
+    }
+
+    private async Task OnCopyOutput()
+    {
+        if (!string.IsNullOrEmpty(outputJson))
+        {
+            await Clipboard.Default.SetTextAsync(outputJson);
+            ToastService.ShowSuccess("Copied to Clipboard");
+        }
+    }
+
+    private async Task OnCopyEscaped()
+    {
+        if (!string.IsNullOrEmpty(outputJson))
+        {
+            var escaped = KafkaSerializerService.EscapeMessageProperty(outputJson);
+            await Clipboard.Default.SetTextAsync(escaped);
+            ToastService.ShowSuccess("Copied Escaped JSON to Clipboard");
         }
     }
 
