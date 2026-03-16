@@ -1,4 +1,9 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.FluentUI.AspNetCore.Components.DesignTokens
+
+@inject AccentBaseColor AccentBaseColor
+
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">Dev Toolbox</a>
     </div>
@@ -14,5 +19,15 @@
                 Deploy SQL Branch
             </NavLink>
         </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="kafkaserializer" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span>
+                Kafka Serializer
+            </NavLink>
+        </div>
     </nav>
 </div>
+
+@code {
+
+}

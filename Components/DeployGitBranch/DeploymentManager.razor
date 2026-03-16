@@ -3,9 +3,10 @@
 @using Models;
 @using Services;
 
-@namespace Components.Pages.DeployGitBranch
+@namespace DevToolbox.Components.DeployGitBranch
 
 @inject ILogger<DeploymentManager> Logger;
+@inject InMemoryLoggerService inMemoryLoggerService;
 @inject ISQLService sqlService;
 @inject IToastService ToastService;
 
@@ -94,7 +95,7 @@
     private async Task RunSQLQueries()
     {
         //Reset
-        DeploymentOptions.Logs = string.Empty;
+        inMemoryLoggerService.ClearLogs();
         processedQueries = 0;
         totalQueries = DeploymentOptions.FileList?.Count ?? 0;
         ResetProgressToast();
@@ -114,6 +115,7 @@
         }
 
         Logger.LogInformation("===========Query Results===========");
+        inMemoryLoggerService.Log("===========Query Results===========");
 
         try
         {
@@ -135,7 +137,9 @@
                 foreach (string result in results)
                 {
                     Logger.LogInformation(result);
-                    DeploymentOptions.Logs += $"[{DateTime.Now}] {result}\n";
+                    inMemoryLoggerService.Log(result);
+                    inMemoryLoggerService.Log($"[{DateTime.Now}] {result}");
+
                     await DeploymentOptionsChanged.InvokeAsync(DeploymentOptions);
                 }
 

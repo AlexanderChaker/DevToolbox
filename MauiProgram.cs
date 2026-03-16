@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.FluentUI.AspNetCore.Components;
 using Services;
 using Microsoft.Maui.LifecycleEvents;
+using DevToolbox.Services;
 
 namespace DevToolbox;
 
@@ -36,6 +37,7 @@ public static class MauiProgram
 		builder.UseMauiCommunityToolkit(); //Used for the FolderPicker;
 		builder.Services.AddMauiBlazorWebView();
 		builder.Services.AddFluentUIComponents();
+		builder.Services.AddSingleton<InMemoryLoggerService>();
 
 		#if DEBUG
 		builder.Services.AddBlazorWebViewDeveloperTools();
@@ -44,6 +46,7 @@ public static class MauiProgram
 
 		builder.Services.AddSingleton<IGitService, GitService>();
 		builder.Services.AddScoped<ISQLService, SQLService>(); //Needs to be scoped since each session can set a different connection string
+		builder.Services.AddSingleton<IKafkaSerializerService, KafkaSerializerService>();
 
 		return builder.Build();
 	}

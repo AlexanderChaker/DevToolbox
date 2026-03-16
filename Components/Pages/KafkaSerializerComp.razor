@@ -1,0 +1,134 @@
+@using DevToolbox.Services.Interfaces
+
+@namespace DevToolbox.Components.Pages
+
+@page "/kafkaserializer"
+
+@inject IKafkaSerializerService KafkaSerializerService
+@inject IToastService ToastService
+
+<FluentStack VerticalGap="15" Orientation="Orientation.Vertical" Style="padding: 10px; height: 100%;">
+
+    <FluentLabel Typo="Typography.PageTitle">Kafka Serializer</FluentLabel>
+
+    <FluentStack HorizontalGap="10" Orientation="Orientation.Horizontal">
+        <FluentButton Appearance="Appearance.Accent" OnClick="@OnConvert">
+            <FluentIcon Value="@(new Icons.Regular.Size20.Play())" Slot="start" />
+            Convert
+        </FluentButton>
+        <FluentButton Appearance="Appearance.Outline" OnClick="@OnPasteFromClipboard">
+            <FluentIcon Value="@(new Icons.Regular.Size20.ClipboardPaste())" Slot="start" />
+            Paste from Clipboard
+        </FluentButton>
+        <FluentButton Appearance="Appearance.Outline" OnClick="@OnClear">
+            <FluentIcon Value="@(new Icons.Regular.Size20.Delete())" Slot="start" />
+            Clear
+        </FluentButton>
+    </FluentStack>
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <FluentMessageBar Title="Error" Intent="@MessageIntent.Error" AllowDismiss="true" OnDismissClick="@(() => errorMessage = null)">
+            @errorMessage
+        </FluentMessageBar>
+    }
+
+    <FluentStack HorizontalGap="15" Orientation="Orientation.Horizontal" Style="flex: 1; min-height: 0; width: 100%;">
+        <div style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
+            <FluentLabel Typo="Typography.Body" Style="margin-bottom: 4px;">Input JSON (compressed or uncompressed)</FluentLabel>
+            <FluentTextArea @bind-Value="inputJson"
+                            Rows="20"
+                            Resize="TextAreaResize.Vertical"
+                            Style="width: 100%; font-family: 'Cascadia Code', Consolas, monospace; font-size: 13px;" />
+        </div>
+        <div style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
+            <FluentStack HorizontalGap="8" Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" Style="margin-bottom: 4px;">
+                <FluentLabel Typo="Typography.Body">Output JSON</FluentLabel>
+                <FluentButton Size="ButtonSize.Small" Appearance="Appearance.Outline" OnClick="@OnCopyOutput" Disabled="@(string.IsNullOrEmpty(outputJson))">
+                    <FluentIcon Value="@(new Icons.Regular.Size16.Copy())" Slot="start" />
+                    Copy
+                </FluentButton>
+                <FluentButton Size="ButtonSize.Small" Appearance="Appearance.Outline" OnClick="@OnCopyEscaped" Disabled="@(string.IsNullOrEmpty(outputJson))">
+                    <FluentIcon Value="@(new Icons.Regular.Size16.Copy())" Slot="start" />
+                    Copy Escaped
+                </FluentButton>
+            </FluentStack>
+            <FluentTextArea @bind-Value="outputJson"
+                            Rows="20"
+                            Resize="TextAreaResize.Vertical"
+                            ReadOnly="true"
+                            Style="width: 100%; font-family: 'Cascadia Code', Consolas, monospace; font-size: 13px;" />
+        </div>
+    </FluentStack>
+
+</FluentStack>
+
+@code {
+    private string? inputJson;
+    private string? outputJson;
+    private string? errorMessage;
+
+    private async Task OnPasteFromClipboard()
+    {
+        try
+        {
+            if (Clipboard.Default.HasText)
+            {
+                inputJson = await Clipboard.Default.GetTextAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to read clipboard: {ex.Message}";
+        }
+    }
+
+    private async Task OnConvert()
+    {
+        errorMessage = null;
+        outputJson = null;
+
+        if (string.IsNullOrWhiteSpace(inputJson))
+        {
+            errorMessage = "Please enter or paste JSON into the input area.";
+            return;
+        }
+
+        try
+        {
+            outputJson = KafkaSerializerService.ProcessKafkaMessage(inputJson);
+            await Clipboard.Default.SetTextAsync(outputJson);
+            ToastService.ShowSuccess("Copied to Clipboard");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Conversion failed: {ex.Message}";
+        }
+    }
+
+    private async Task OnCopyOutput()
+    {
+        if (!string.IsNullOrEmpty(outputJson))
+        {
+            await Clipboard.Default.SetTextAsync(outputJson);
+            ToastService.ShowSuccess("Copied to Clipboard");
+        }
+    }
+
+    private async Task OnCopyEscaped()
+    {
+        if (!string.IsNullOrEmpty(outputJson))
+        {
+            var escaped = KafkaSerializerService.EscapeMessageProperty(outputJson);
+            await Clipboard.Default.SetTextAsync(escaped);
+            ToastService.ShowSuccess("Copied Escaped JSON to Clipboard");
+        }
+    }
+
+    private void OnClear()
+    {
+        inputJson = null;
+        outputJson = null;
+        errorMessage = null;
+    }
+}

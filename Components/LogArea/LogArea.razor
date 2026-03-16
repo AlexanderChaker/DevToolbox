@@ -1,0 +1,94 @@
+@using DevToolbox.Services
+@using Microsoft.AspNetCore.Components
+@using Microsoft.JSInterop
+@using Microsoft.FluentUI.AspNetCore.Components
+@inject IJSRuntime JS
+
+@namespace DevToolbox.Components.LogArea
+
+@inject InMemoryLoggerService LogService
+@implements IDisposable
+
+<div class="log-wrapper">
+    <div class="log-controls">
+        <FluentButton Appearance="Appearance.Lightweight" OnClick="@OnClearLogs">
+            <FluentIcon Value="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Regular.Size16.Delete())" />
+            Clear
+        </FluentButton>
+
+    </div>
+
+    <div id="logArea" class="custom-log-area">
+        @if (!string.IsNullOrEmpty(LogValue))
+        {
+            <pre>@LogValue</pre>
+        }
+    </div>
+</div>
+
+@code {
+    private bool _autoScroll = true;
+    private IJSObjectReference? _jsModule;
+    private DotNetObjectReference<LogArea>? _objectReference;
+    private const string LogAreaId = "logArea";
+
+    [Parameter]
+    public string LogValue { get; set; } = string.Empty;
+
+    [Parameter]
+    public EventCallback<string> LogValueChanged { get; set; }
+
+    public bool AutoScroll => _autoScroll;
+
+    protected override async Task OnInitializedAsync()
+    {
+        LogService.LogsChanged += OnLogsChanged;
+        UpdateLogValue(LogService.GetLogs());
+        
+        _jsModule = await JS.InvokeAsync<IJSObjectReference>("import", "./js/logScroll.js");
+        _objectReference = DotNetObjectReference.Create(this);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && _jsModule != null && _objectReference != null)
+        {
+            await _jsModule.InvokeVoidAsync("initializeScrollTracking", LogAreaId, _objectReference);
+        }
+
+        if (_autoScroll && _jsModule != null)
+        {
+            await _jsModule.InvokeVoidAsync("scrollToBottom", LogAreaId);
+        }
+    }
+
+    private void OnLogsChanged(object? sender, string logs)
+    {
+        UpdateLogValue(logs);
+        StateHasChanged();
+    }
+
+    private void OnRefreshLogs()
+    {
+        UpdateLogValue(LogService.GetLogs());
+    }
+
+    private void OnClearLogs()
+    {
+        LogService.ClearLogs();
+    }
+
+    private void UpdateLogValue(string value)
+    {
+        if (LogValue != value)
+        {
+            LogValue = value;
+            LogValueChanged.InvokeAsync(value);
+        }
+    }
+
+    void IDisposable.Dispose()
+    {
+        LogService.LogsChanged -= OnLogsChanged;
+    }
+}
