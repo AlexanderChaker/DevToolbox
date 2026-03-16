@@ -9,6 +9,12 @@
             "type": "maui",
             "request": "launch",
             "preLaunchTask": "maui: Build"
+        },
+        {
+            "name": "Publish (Windows)",
+            "type": "maui",
+            "request": "launch",
+            "preLaunchTask": "publish-maui-windows"
         }
     ]
 }
