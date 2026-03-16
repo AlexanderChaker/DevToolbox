@@ -9,19 +9,21 @@
 @inject InMemoryLoggerService LogService
 @implements IDisposable
 
-<div class="log-controls">
-    <FluentButton Appearance="Appearance.Lightweight" OnClick="@OnClearLogs">
-        <FluentIcon Value="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Regular.Size16.Delete())" />
-        Clear
-    </FluentButton>
+<div class="log-wrapper">
+    <div class="log-controls">
+        <FluentButton Appearance="Appearance.Lightweight" OnClick="@OnClearLogs">
+            <FluentIcon Value="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Regular.Size16.Delete())" />
+            Clear
+        </FluentButton>
 
-</div>
+    </div>
 
-<div id="logArea" class="custom-log-area">
-    @if (!string.IsNullOrEmpty(LogValue))
-    {
-        <pre>@LogValue</pre>
-    }
+    <div id="logArea" class="custom-log-area">
+        @if (!string.IsNullOrEmpty(LogValue))
+        {
+            <pre>@LogValue</pre>
+        }
+    </div>
 </div>
 
 @code {
