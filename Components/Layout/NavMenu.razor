@@ -3,31 +3,54 @@
 
 @inject AccentBaseColor AccentBaseColor
 
-<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">Dev Toolbox</a>
+<div class="navmenu @(IsCollapsed ? "collapsed" : "")">
+    <div class="top-row ps-3 navbar navbar-dark">
+        <div class="container-fluid">
+            @if (!IsCollapsed)
+            {
+                <a class="navbar-brand" href="">Dev Toolbox</a>
+            }
+        </div>
+    </div>
+
+    <input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+
+    <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+        <nav class="flex-column">
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="deploygitbranch" Match="NavLinkMatch.All">
+                    <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span>
+                    @if (!IsCollapsed)
+                    {
+                        <text>Deploy SQL Branch</text>
+                    }
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="kafkaserializer" Match="NavLinkMatch.All">
+                    <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span>
+                    @if (!IsCollapsed)
+                    {
+                        <text>Kafka Serializer</text>
+                    }
+                </NavLink>
+            </div>
+        </nav>
+    </div>
+
+    <div class="bottom-row">
+        <button class="collapse-toggle-btn" @onclick="ToggleCollapse" title="@(IsCollapsed ? "Expand menu" : "Collapse menu")">
+            <span class="bi @(IsCollapsed ? "bi-chevron-right" : "bi-chevron-left")" aria-hidden="true"></span>
+        </button>
     </div>
 </div>
 
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
-
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="deploygitbranch" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span>
-                Deploy SQL Branch
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="kafkaserializer" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span>
-                Kafka Serializer
-            </NavLink>
-        </div>
-    </nav>
-</div>
-
 @code {
+    [Parameter] public bool IsCollapsed { get; set; }
+    [Parameter] public EventCallback<bool> IsCollapsedChanged { get; set; }
 
+    private async Task ToggleCollapse()
+    {
+        await IsCollapsedChanged.InvokeAsync(!IsCollapsed);
+    }
 }

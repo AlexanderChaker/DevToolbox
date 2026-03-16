@@ -3,8 +3,8 @@
 @inherits LayoutComponentBase
 
 <div class="page">
-    <div class="sidebar">
-        <NavMenu />
+    <div class="sidebar @(isCollapsed ? "collapsed" : "")">
+        <NavMenu IsCollapsed="isCollapsed" IsCollapsedChanged="OnCollapsedChanged" />
     </div>
 
     <main>
@@ -16,3 +16,18 @@
 
 <FluentToastProvider MaxToastCount="10" />
 <FluentMenuProvider />
+
+@code {
+    private bool isCollapsed;
+
+    protected override void OnInitialized()
+    {
+        isCollapsed = Preferences.Get("NavMenuCollapsed", false);
+    }
+
+    private void OnCollapsedChanged(bool collapsed)
+    {
+        isCollapsed = collapsed;
+        Preferences.Set("NavMenuCollapsed", collapsed);
+    }
+}
