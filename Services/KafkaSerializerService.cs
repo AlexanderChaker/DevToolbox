@@ -31,20 +31,31 @@ public class KafkaSerializerService : IKafkaSerializerService
         if (node is null)
             return inputJson;
 
-        // If the root has a "Message" property that looks like a compressed string, decompress it
+        // If the root has a "Message" property, try to decompress or parse it
         if (node is JsonObject root && root.TryGetPropertyValue("Message", out var messageNode))
         {
-            var messageStr = messageNode?.GetValue<string>();
-            if (messageStr is not null && !messageStr.TrimStart().StartsWith('{') && !messageStr.TrimStart().StartsWith('['))
+            if (messageNode is JsonValue mv && mv.TryGetValue<string>(out var messageStr))
             {
-                try
+                var trimmed = messageStr.AsSpan().TrimStart();
+                if (trimmed.Length > 0 && (trimmed[0] == '{' || trimmed[0] == '['))
                 {
-                    var decompressed = DecompressGzip(messageStr);
-                    root["Message"] = JsonNode.Parse(decompressed);
+                    // Escaped JSON string — parse directly
+                    var parsed = TryParseJson(messageStr);
+                    if (parsed is not null)
+                        root["Message"] = parsed;
                 }
-                catch
+                else
                 {
-                    // Not a valid gzip base64 string — leave as-is
+                    // Possibly gzip-compressed base64
+                    try
+                    {
+                        var decompressed = DecompressGzip(messageStr);
+                        root["Message"] = JsonNode.Parse(decompressed);
+                    }
+                    catch
+                    {
+                        // Not a valid gzip base64 string — leave as-is
+                    }
                 }
             }
         }
@@ -52,6 +63,27 @@ public class KafkaSerializerService : IKafkaSerializerService
         UnescapeJsonNode(node);
 
         return node.ToJsonString(PrettyOptions);
+    }
+
+    private static bool LooksLikeJson(string s)
+    {
+        var span = s.AsSpan().TrimStart();
+        return span.Length > 1 && (span[0] == '{' || span[0] == '[');
+    }
+
+    private static JsonNode? TryParseJson(string str)
+    {
+        if (!LooksLikeJson(str))
+            return null;
+
+        try
+        {
+            return JsonNode.Parse(str);
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     private static void UnescapeJsonNode(JsonNode? node)
@@ -64,19 +96,12 @@ public class KafkaSerializerService : IKafkaSerializerService
 
                 if (value is JsonValue jv && jv.TryGetValue<string>(out var str))
                 {
-                    try
+                    var parsed = TryParseJson(str);
+                    if (parsed is not null)
                     {
-                        var parsed = JsonNode.Parse(str);
-                        if (parsed is not null)
-                        {
-                            obj[key] = parsed;
-                            UnescapeJsonNode(parsed);
-                            continue;
-                        }
-                    }
-                    catch
-                    {
-                        // Not a JSON string — leave as-is
+                        obj[key] = parsed;
+                        UnescapeJsonNode(parsed);
+                        continue;
                     }
                 }
 
@@ -91,19 +116,12 @@ public class KafkaSerializerService : IKafkaSerializerService
 
                 if (item is JsonValue jv && jv.TryGetValue<string>(out var str))
                 {
-                    try
+                    var parsed = TryParseJson(str);
+                    if (parsed is not null)
                     {
-                        var parsed = JsonNode.Parse(str);
-                        if (parsed is not null)
-                        {
-                            arr[i] = parsed;
-                            UnescapeJsonNode(parsed);
-                            continue;
-                        }
-                    }
-                    catch
-                    {
-                        // Not a JSON string — leave as-is
+                        arr[i] = parsed;
+                        UnescapeJsonNode(parsed);
+                        continue;
                     }
                 }
 
