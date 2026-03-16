@@ -5,6 +5,7 @@
 @page "/kafkaserializer"
 
 @inject IKafkaSerializerService KafkaSerializerService
+@inject IToastService ToastService
 
 <FluentStack VerticalGap="15" Orientation="Orientation.Vertical" Style="padding: 10px; height: 100%;">
 
@@ -72,7 +73,7 @@
         }
     }
 
-    private void OnConvert()
+    private async Task OnConvert()
     {
         errorMessage = null;
         outputJson = null;
@@ -86,6 +87,8 @@
         try
         {
             outputJson = KafkaSerializerService.ProcessKafkaMessage(inputJson);
+            await Clipboard.Default.SetTextAsync(outputJson);
+            ToastService.ShowSuccess("Copied to Clipboard");
         }
         catch (Exception ex)
         {
