@@ -45,7 +45,11 @@
 </FluentStack>
 
 <div class="bottom-row" style="flex:1;display:flex;flex-direction:column;min-height:0;width:100%;">
-    <LogArea />
+    <FluentCheckbox @bind-Value="showConsole" @bind-Value:after="() => ShowConsoleAsync(showConsole)" Label="Show Logs" />
+    @if (showConsole)
+    {
+        <LogArea />
+    }
 </div>
 
 @code {
@@ -56,45 +60,13 @@
     protected string? serverUrl { get; set; } //Return serverUrl from SQLManager and pass to DeploymentManager
     protected bool showConsole { get; set; }
 
-    //CSS Styles
-    const string consoleDefaultStyle = "font-size:small; font-family:Cascadia Code; line-height:normal;";
-    const string constoleHiddenStyle = "display:none;";
-    private Dictionary<string, object> consoleStyle { get; set; } = new Dictionary<string, object>
-    {
-        ["style"] =
-    consoleDefaultStyle
-    };
-    private Dictionary<string, object> clearLogsButtonStyle { get; set; } = new Dictionary<string, object>
-    {
-        ["style"] =
-    string.Empty
-    };
-
     protected override async Task OnInitializedAsync()
     {
-        showConsole = ((await SecureStorage.Default.GetAsync("showConsole")) == "True") ? true : false;
-        await ShowConsoleAsync(showConsole);
-    }
-
-    private async Task ShowConsoleToggleAsync()
-    {
-        showConsole = !showConsole;
-        await ShowConsoleAsync(showConsole);
+        showConsole = (await SecureStorage.Default.GetAsync("showConsole")) == "True";
     }
 
     private async Task ShowConsoleAsync(bool show)
     {
-        if (show)
-        {
-            consoleStyle["style"] = consoleDefaultStyle;
-            clearLogsButtonStyle["style"] = "visibility:visible;";
-        }
-        else
-        {
-            consoleStyle["style"] = constoleHiddenStyle;
-            clearLogsButtonStyle["style"] = "visibility:hidden;";
-        }
-
         await SecureStorage.Default.SetAsync("showConsole", show.ToString());
     }
 }
