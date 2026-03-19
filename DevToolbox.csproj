@@ -33,7 +33,11 @@
 
     <ItemGroup>
         <!-- App Icon -->
-        <MauiIcon Include="Resources\AppIcon\devtoolkit.svg"/>
+        <MauiIcon Include="Resources\AppIcon\devtoolkit.svg" />
+
+        <Content Include="Resources\AppIcon\*">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
 
         <!-- Splash Screen -->
         <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
@@ -50,6 +54,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="H.NotifyIcon.WinUI" Version="2.4.1" />
         <PackageReference Include="Microsoft.Maui.Controls" Version="10.0.10" />
         <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="10.0.10" />
         <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
