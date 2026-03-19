@@ -1,5 +1,4 @@
 using H.NotifyIcon;
-using Microsoft.Win32;
 using WinUIControls = Microsoft.UI.Xaml.Controls;
 
 namespace DevToolbox.Platforms.Windows;
@@ -8,7 +7,6 @@ public static partial class TrayService
 {
     private static TaskbarIcon? _trayIcon;
     private static Microsoft.UI.Xaml.Window? _window;
-
     public static bool IsExiting { get; private set; }
 
     public static void Initialize(Microsoft.UI.Xaml.Window window)
@@ -24,15 +22,13 @@ public static partial class TrayService
             ToolTipText = "Dev Toolbox",
             Icon = new System.Drawing.Icon(Path.Combine(AppContext.BaseDirectory, iconFile)),
             NoLeftClickDelay = true,
-            // Left-click restores the window
-            LeftClickCommand = new SimpleCommand(RestoreWindow),
-            // RightClickCommand = new SimpleCommand(ExitApplication)
+            LeftClickCommand = new ExecuteCommand(RestoreWindow),
         };
 
         // Right-click context menu
-        var kafkaItem = new WinUIControls.MenuFlyoutItem { Text = "Kafka Deserialize", Command = new SimpleCommand(OnKafkaDeserialize) };
-        var showItem = new WinUIControls.MenuFlyoutItem { Text = "Show", Command = new SimpleCommand(RestoreWindow) };
-        var exitItem = new WinUIControls.MenuFlyoutItem { Text = "Exit", Command = new SimpleCommand(ExitApplication) };
+        var kafkaItem = new WinUIControls.MenuFlyoutItem { Text = "Kafka Deserialize", Command = new ExecuteCommand(OnKafkaDeserialize) };
+        var showItem = new WinUIControls.MenuFlyoutItem { Text = "Show", Command = new ExecuteCommand(RestoreWindow) };
+        var exitItem = new WinUIControls.MenuFlyoutItem { Text = "Exit", Command = new ExecuteCommand(ExitApplication) };
 
         var menu = new WinUIControls.MenuFlyout();
         menu.Items.Add(kafkaItem);
@@ -41,7 +37,6 @@ public static partial class TrayService
         menu.Items.Add(exitItem);
 
         _trayIcon.ContextFlyout = menu;
-
         _trayIcon.ForceCreate();
     }
 
@@ -69,17 +64,15 @@ public static partial class TrayService
     private static void OnKafkaDeserialize()
     {
         RestoreWindow();
-        DevToolbox.Services.TrayCommandService.Instance?.RequestKafkaDeserialize();
+        Services.TrayCommandService.Instance?.RequestKafkaDeserialize();
     }
 
     private static bool IsDarkTheme()
     {
-        using var key = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize");
-        var value = key?.GetValue("AppsUseLightTheme");
-        return value is int i && i == 0;
+        return Application.Current?.RequestedTheme == AppTheme.Dark;
     }
 
-    private partial class SimpleCommand(Action execute) : System.Windows.Input.ICommand
+    private partial class ExecuteCommand(Action execute) : System.Windows.Input.ICommand
     {
         private readonly Action _execute = execute;
         public bool CanExecute(object? parameter) => true;

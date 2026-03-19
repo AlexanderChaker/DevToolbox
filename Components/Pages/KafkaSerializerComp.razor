@@ -16,7 +16,7 @@
     <FluentLabel Typo="Typography.PageTitle">Kafka Serializer</FluentLabel>
 
     <FluentStack HorizontalGap="10" Orientation="Orientation.Horizontal">
-        <FluentButton Appearance="Appearance.Accent" OnClick="@OnConvert">
+        <FluentButton Appearance="Appearance.Accent" OnClick="@(() => RunConvert())">
             <FluentIcon Value="@(new Icons.Regular.Size20.Play())" Slot="start" Color="Color.Custom"/>
             Convert
         </FluentButton>
@@ -82,7 +82,7 @@
         if (firstRender && TrayCommandService.PendingKafkaDeserialize)
         {
             TrayCommandService.PendingKafkaDeserialize = false;
-            await RunKafkaDeserialize();
+            await RunConvert(pasteFromClipboard: true);
             StateHasChanged();
         }
     }
@@ -93,37 +93,9 @@
         TrayCommandService.PendingKafkaDeserialize = false;
         InvokeAsync(async () =>
         {
-            await RunKafkaDeserialize();
+            await RunConvert(pasteFromClipboard: true);
             StateHasChanged();
         });
-    }
-
-    private async Task RunKafkaDeserialize()
-    {
-        errorMessage = null;
-        outputJson = null;
-
-        try
-        {
-            if (Clipboard.Default.HasText)
-            {
-                inputJson = await Clipboard.Default.GetTextAsync();
-            }
-
-            if (string.IsNullOrWhiteSpace(inputJson))
-            {
-                errorMessage = "Clipboard is empty or does not contain text.";
-                return;
-            }
-
-            outputJson = KafkaSerializerService.ProcessKafkaMessage(inputJson);
-            await Clipboard.Default.SetTextAsync(outputJson);
-            ToastService.ShowSuccess("Deserialized and copied to Clipboard");
-        }
-        catch (Exception ex)
-        {
-            errorMessage = $"Kafka deserialization failed: {ex.Message}";
-        }
     }
 
     public void Dispose()
@@ -146,19 +118,26 @@
         }
     }
 
-    private async Task OnConvert()
+    private async Task RunConvert(bool pasteFromClipboard = false)
     {
         errorMessage = null;
         outputJson = null;
 
-        if (string.IsNullOrWhiteSpace(inputJson))
-        {
-            errorMessage = "Please enter or paste JSON into the input area.";
-            return;
-        }
-
         try
         {
+            if (pasteFromClipboard && Clipboard.Default.HasText)
+            {
+                inputJson = await Clipboard.Default.GetTextAsync();
+            }
+
+            if (string.IsNullOrWhiteSpace(inputJson))
+            {
+                errorMessage = pasteFromClipboard
+                    ? "Clipboard is empty or does not contain text."
+                    : "Please enter or paste JSON into the input area.";
+                return;
+            }
+
             outputJson = KafkaSerializerService.ProcessKafkaMessage(inputJson);
             await Clipboard.Default.SetTextAsync(outputJson);
             ToastService.ShowSuccess("Copied to Clipboard");
@@ -182,7 +161,7 @@
     {
         if (!string.IsNullOrEmpty(outputJson))
         {
-            var escaped = KafkaSerializerService.EscapeMessageProperty(outputJson);
+            string? escaped = KafkaSerializerService.EscapeMessageProperty(outputJson);
             await Clipboard.Default.SetTextAsync(escaped);
             ToastService.ShowSuccess("Copied Escaped JSON to Clipboard");
         }
