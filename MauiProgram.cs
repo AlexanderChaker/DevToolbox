@@ -5,6 +5,7 @@ using Microsoft.FluentUI.AspNetCore.Components;
 using Services;
 using Microsoft.Maui.LifecycleEvents;
 using DevToolbox.Services;
+using DevToolbox.Platforms.Windows;
 
 namespace DevToolbox;
 
@@ -20,7 +21,7 @@ public static class MauiProgram
 				fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
 			});
 
-		// Set the window title
+		// Set the window title and configure tray icon
 		builder.ConfigureLifecycleEvents(events =>
         {
 			#if WINDOWS
@@ -29,6 +30,23 @@ public static class MauiProgram
                 windows.OnWindowCreated((window) =>
                 {
                     window.Title = "Dev Toolbox";
+
+                    var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+                    var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hwnd);
+                    var appWindow = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(windowId);
+
+                    // Initialize system tray icon
+                    TrayService.Initialize(window);
+
+                    // Intercept close: hide to tray instead of closing
+                    appWindow.Closing += (s, e) =>
+                    {
+                        if (!TrayService.IsExiting)
+                        {
+                            e.Cancel = true;
+                            TrayService.HideWindow();
+                        }
+                    };
                 });
             });
 			#endif
