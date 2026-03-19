@@ -65,6 +65,7 @@ public static class MauiProgram
 		builder.Services.AddSingleton<IGitService, GitService>();
 		builder.Services.AddScoped<ISQLService, SQLService>(); //Needs to be scoped since each session can set a different connection string
 		builder.Services.AddSingleton<IKafkaSerializerService, KafkaSerializerService>();
+		builder.Services.AddSingleton<TrayCommandService>();
 
 		return builder.Build();
 	}

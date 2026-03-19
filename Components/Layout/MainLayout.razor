@@ -1,6 +1,11 @@
 ﻿@using DevToolbox.Components.LogArea;
+@using DevToolbox.Services;
 
+@implements IDisposable
 @inherits LayoutComponentBase
+
+@inject TrayCommandService TrayCommandService
+@inject NavigationManager NavigationManager
 
 <div class="page">
     <div class="sidebar @(isCollapsed ? "collapsed" : "")">
@@ -23,11 +28,22 @@
     protected override void OnInitialized()
     {
         isCollapsed = Preferences.Get("NavMenuCollapsed", false);
+        TrayCommandService.KafkaDeserializeRequested += OnKafkaDeserializeRequested;
+    }
+
+    private void OnKafkaDeserializeRequested()
+    {
+        InvokeAsync(() => NavigationManager.NavigateTo("/kafkaserializer"));
     }
 
     private void OnCollapsedChanged(bool collapsed)
     {
         isCollapsed = collapsed;
         Preferences.Set("NavMenuCollapsed", collapsed);
+    }
+
+    public void Dispose()
+    {
+        TrayCommandService.KafkaDeserializeRequested -= OnKafkaDeserializeRequested;
     }
 }
