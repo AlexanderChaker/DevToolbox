@@ -1,7 +1,6 @@
 @using DevToolbox.Services
 @using Microsoft.AspNetCore.Components
 @using Microsoft.JSInterop
-@using Microsoft.FluentUI.AspNetCore.Components
 @inject IJSRuntime JS
 
 @namespace DevToolbox.Components.LogArea
@@ -11,10 +10,7 @@
 
 <div class="log-wrapper">
     <div class="log-controls">
-        <FluentButton Appearance="Appearance.Lightweight" OnClick="@OnClearLogs">
-            <FluentIcon Value="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Regular.Size16.Delete())" />
-            Clear
-        </FluentButton>
+        <MudButton Variant="Variant.Outlined" Color="Color.Error" StartIcon="@Icons.Material.Filled.Delete" OnClick="OnClearLogs">Clear</MudButton>
 
     </div>
 

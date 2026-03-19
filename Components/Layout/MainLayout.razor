@@ -19,10 +19,29 @@
     </main>
 </div>
 
-<FluentToastProvider MaxToastCount="10" />
-<FluentMenuProvider />
+<MudThemeProvider Theme="_mudTheme" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
 
 @code {
+    private readonly MudTheme _mudTheme = new()
+    {
+        PaletteLight = new PaletteLight
+        {
+            Primary = "#0F766E",
+            Secondary = "#1D4ED8",
+            Background = "#F4F7FA",
+            Surface = "#FFFFFF",
+            AppbarBackground = "#0F172A",
+            AppbarText = "#E2E8F0"
+        },
+        LayoutProperties = new LayoutProperties
+        {
+            DefaultBorderRadius = "10px"
+        }
+    };
+
     private bool isCollapsed;
 
     protected override void OnInitialized()

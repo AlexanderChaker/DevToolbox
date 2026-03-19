@@ -1,6 +1,18 @@
 ﻿/*#if (SampleContent)*/
 html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: 'Segoe UI', 'Inter', Tahoma, Geneva, Verdana, sans-serif;
+    height: 100%;
+}
+
+#app {
+    height: 100%;
+}
+
+body {
+    background:
+        radial-gradient(1200px 400px at 20% -10%, rgba(15, 118, 110, 0.08), transparent 60%),
+        radial-gradient(1000px 500px at 100% -20%, rgba(29, 78, 216, 0.08), transparent 55%),
+        #f4f7fa;
 }
 
 a, .btn-link {
@@ -19,6 +31,7 @@ a, .btn-link {
 
 .content {
     padding-top: 1.1rem;
+    height: 100%;
 }
 
 /*#endif*/
@@ -36,6 +49,11 @@ h1:focus {
 
 .validation-message {
     color: #e50000;
+}
+
+.mud-button-root {
+    text-transform: none !important;
+    letter-spacing: normal;
 }
 
 #blazor-error-ui {

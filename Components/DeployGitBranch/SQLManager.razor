@@ -7,18 +7,23 @@
 
 @inject ILogger<SQLManager> Logger;
 @inject ISQLService sqlService;
-@inject IToastService ToastService;
+@inject ISnackbar Snackbar;
 
-<FluentStack Orientation=Orientation.Vertical VerticalAlignment="VerticalAlignment.Center">
-    <FluentStack Orientation=Orientation.Horizontal>
-        <FluentTextField @bind-Value=@serverUrl Size="60" />
-        <FluentButton Appearance="Appearance.Accent" @onclick="SetServerURL">Set Server</FluentButton>
-    </FluentStack>
+<MudStack Spacing="2">
+    <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+        <MudTextField @bind-Value="serverUrl" FullWidth="true" Variant="Variant.Outlined" />
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SetServerURL">Set Server</MudButton>
+    </MudStack>
 
-    <FluentStack Orientation=Orientation.Horizontal VerticalAlignment=VerticalAlignment.Center>
-        <FluentCombobox Label="Default DB (optional)" Autocomplete="ComboboxAutocomplete.Both" Items="dbNames" @bind-Value="@dbName" Height="200px" Width="200px" />
-    </FluentStack>
-</FluentStack>
+    <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+        <MudSelect T="string" Label="Default DB (optional)" @bind-Value="dbName" Variant="Variant.Outlined" Style="min-width: 240px;">
+            @foreach (var db in dbNames)
+            {
+                <MudSelectItem T="string" Value="@db">@db</MudSelectItem>
+            }
+        </MudSelect>
+    </MudStack>
+</MudStack>
 
 @code {
     [Parameter]
@@ -48,7 +53,7 @@
         }
         catch (Exception)
         {
-            ToastService.ShowError("Failed To Set Server");
+            Snackbar.Add("Failed To Set Server", Severity.Error);
             return;
         }
 
@@ -57,7 +62,7 @@
         await SecureStorage.Default.SetAsync("serverUrl", serverUrl);
         await DeploymentOptionsChanged.InvokeAsync(DeploymentOptions);
 
-        ToastService.ShowSuccess("Server Set Successfully");
+        Snackbar.Add("Server Set Successfully", Severity.Success);
     }
 
 }

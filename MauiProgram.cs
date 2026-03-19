@@ -1,7 +1,8 @@
 ﻿using CommunityToolkit.Maui;
 using DevToolbox.Services.Interfaces;
 using Microsoft.Extensions.Logging;
-using Microsoft.FluentUI.AspNetCore.Components;
+using MudBlazor;
+using MudBlazor.Services;
 using Services;
 using Microsoft.Maui.LifecycleEvents;
 using DevToolbox.Services;
@@ -54,7 +55,16 @@ public static class MauiProgram
 
 		builder.UseMauiCommunityToolkit(); //Used for the FolderPicker;
 		builder.Services.AddMauiBlazorWebView();
-		builder.Services.AddFluentUIComponents();
+		builder.Services.AddMudServices(config =>
+		{
+			config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomRight;
+			config.SnackbarConfiguration.PreventDuplicates = true;
+			config.SnackbarConfiguration.NewestOnTop = true;
+			config.SnackbarConfiguration.VisibleStateDuration = 3500;
+			config.SnackbarConfiguration.ShowTransitionDuration = 150;
+			config.SnackbarConfiguration.HideTransitionDuration = 150;
+			config.SnackbarConfiguration.MaxDisplayedSnackbars = 4;
+		});
 		builder.Services.AddSingleton<InMemoryLoggerService>();
 
 		#if DEBUG
