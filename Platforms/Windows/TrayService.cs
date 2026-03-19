@@ -30,14 +30,14 @@ public static partial class TrayService
         };
 
         // Right-click context menu
-        // var deserializeKafkaMsg = new WinUIControls.MenuFlyoutItem { Text = "Deserialize Kafka Message", Command = new SimpleCommand(() => { }) }; // TODO
+        var kafkaItem = new WinUIControls.MenuFlyoutItem { Text = "Kafka Deserialize", Command = new SimpleCommand(OnKafkaDeserialize) };
         var showItem = new WinUIControls.MenuFlyoutItem { Text = "Show", Command = new SimpleCommand(RestoreWindow) };
         var exitItem = new WinUIControls.MenuFlyoutItem { Text = "Exit", Command = new SimpleCommand(ExitApplication) };
 
         var menu = new WinUIControls.MenuFlyout();
-        // menu.Items.Add(deserializeKafkaMsg); // TODO
-        menu.Items.Add(showItem);
+        menu.Items.Add(kafkaItem);
         menu.Items.Add(new WinUIControls.MenuFlyoutSeparator());
+        menu.Items.Add(showItem);
         menu.Items.Add(exitItem);
 
         _trayIcon.ContextFlyout = menu;
@@ -64,6 +64,12 @@ public static partial class TrayService
         _trayIcon?.Dispose();
         _trayIcon = null;
         _window?.Close();
+    }
+
+    private static void OnKafkaDeserialize()
+    {
+        RestoreWindow();
+        DevToolbox.Services.TrayCommandService.Instance?.RequestKafkaDeserialize();
     }
 
     private static bool IsDarkTheme()

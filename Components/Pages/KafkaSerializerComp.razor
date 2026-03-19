@@ -1,11 +1,15 @@
 @using DevToolbox.Services.Interfaces
+@using DevToolbox.Services
 
 @namespace DevToolbox.Components.Pages
 
 @page "/kafkaserializer"
 
+@implements IDisposable
+
 @inject IKafkaSerializerService KafkaSerializerService
 @inject IToastService ToastService
+@inject TrayCommandService TrayCommandService
 
 <FluentStack VerticalGap="15" Orientation="Orientation.Vertical" Style="padding: 10px; height: 100%;">
 
@@ -67,6 +71,65 @@
     private string? inputJson;
     private string? outputJson;
     private string? errorMessage;
+
+    protected override void OnInitialized()
+    {
+        TrayCommandService.KafkaDeserializeRequested += OnTrayKafkaDeserialize;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && TrayCommandService.PendingKafkaDeserialize)
+        {
+            TrayCommandService.PendingKafkaDeserialize = false;
+            await RunKafkaDeserialize();
+            StateHasChanged();
+        }
+    }
+
+    private void OnTrayKafkaDeserialize()
+    {
+        // If already on this page, handle directly
+        TrayCommandService.PendingKafkaDeserialize = false;
+        InvokeAsync(async () =>
+        {
+            await RunKafkaDeserialize();
+            StateHasChanged();
+        });
+    }
+
+    private async Task RunKafkaDeserialize()
+    {
+        errorMessage = null;
+        outputJson = null;
+
+        try
+        {
+            if (Clipboard.Default.HasText)
+            {
+                inputJson = await Clipboard.Default.GetTextAsync();
+            }
+
+            if (string.IsNullOrWhiteSpace(inputJson))
+            {
+                errorMessage = "Clipboard is empty or does not contain text.";
+                return;
+            }
+
+            outputJson = KafkaSerializerService.ProcessKafkaMessage(inputJson);
+            await Clipboard.Default.SetTextAsync(outputJson);
+            ToastService.ShowSuccess("Deserialized and copied to Clipboard");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Kafka deserialization failed: {ex.Message}";
+        }
+    }
+
+    public void Dispose()
+    {
+        TrayCommandService.KafkaDeserializeRequested -= OnTrayKafkaDeserialize;
+    }
 
     private async Task OnPasteFromClipboard()
     {
