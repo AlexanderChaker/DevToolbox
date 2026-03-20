@@ -1,6 +1,5 @@
 ﻿@using CommunityToolkit.Maui.Storage;
 @using Models;
-@using Services;
 @using DevToolbox.Services.Interfaces;
 
 @namespace DevToolbox.Components.DeployGitBranch
@@ -12,7 +11,7 @@
 <MudStack Spacing="2">
     <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
         <MudTextField Value="@DeploymentOptions.WorkingDirectory" ReadOnly="true" FullWidth="true" Variant="Variant.Outlined" />
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SetWorkingDirectoryAsync">Set Working Directory</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SetWorkingDirectoryAsync">Working Directory</MudButton>
     </MudStack>
 
     <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">

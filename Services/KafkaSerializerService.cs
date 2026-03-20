@@ -4,7 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using DevToolbox.Services.Interfaces;
 
-namespace Services;
+namespace DevToolbox.Services;
 
 public class KafkaSerializerService : IKafkaSerializerService
 {
