@@ -51,7 +51,15 @@ h1:focus {
     color: #e50000;
 }
 
-.mud-button-root {
+/* Remove the All Caps from material design*/
+.mud-button-root,
+.mud-tab,
+.mud-chip,
+.mud-menu-item,
+.mud-list-item,
+.mud-input-label,
+.mud-select,
+.mud-toggle-item {
     text-transform: none !important;
     letter-spacing: normal;
 }
