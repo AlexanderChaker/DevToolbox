@@ -10,6 +10,9 @@ namespace Services;
 public class GitService : IGitService
 {
     private readonly ILogger<MyDbContext> _logger;
+    private static readonly StringComparison PathComparison = OperatingSystem.IsWindows()
+        ? StringComparison.OrdinalIgnoreCase
+        : StringComparison.Ordinal;
 
     public GitService(ILogger<MyDbContext> Logger)
     {
@@ -130,7 +133,8 @@ public class GitService : IGitService
             throw new Exception("Working Directory needs to be set");
         }
 
-        List<string> absoluteFileList = new();
+        var normalizedWorkingDirectory = NormalizePath(workingDirectory);
+        List<string> absoluteFileList = [];
 
         foreach (string file in relativeFileList)
         {
@@ -139,7 +143,7 @@ public class GitService : IGitService
                 continue;
             }
 
-            string absoluteFilePath = new DirectoryInfo(Path.Combine(workingDirectory, file)).FullName; //This normalizes the Windows and Linux paths
+            string absoluteFilePath = NormalizePath(Path.Combine(normalizedWorkingDirectory, file));
             absoluteFileList.Add(absoluteFilePath);
         }
 
@@ -251,24 +255,63 @@ public class GitService : IGitService
 
     public List<string> SortByYaml(string workingDirectory, List<string> yamlList, List<string> fileList)
     {
-        List<string> result = new();
+        if (string.IsNullOrWhiteSpace(workingDirectory))
+        {
+            throw new Exception("Working Directory needs to be set");
+        }
+
+        List<string> result = [];
+        string normalizedWorkingDirectory = NormalizePath(workingDirectory);
+        List<string> normalizedFiles = fileList
+            .Where(f => !string.IsNullOrWhiteSpace(f))
+            .Select(NormalizePath)
+            .ToList();
 
         foreach (var folder in yamlList)
         {
-            var fullFolderPath = Path.Combine(workingDirectory, folder);
-
-            if (string.IsNullOrEmpty(folder))
+            if (string.IsNullOrWhiteSpace(folder))
             {
-                break;
+                continue;
             }
 
-            foreach(string file in fileList.Where(f=>f.StartsWith(fullFolderPath)))
+            string normalizedFolder = NormalizeRepoRelativePath(folder);
+            string fullFolderPath = NormalizePath(Path.Combine(normalizedWorkingDirectory, normalizedFolder));
+
+            foreach (string file in normalizedFiles.Where(f => IsPathUnderFolder(f, fullFolderPath)))
             {
                 result.Add(file);
             }
         }
 
         return result;
+    }
+
+    private static string NormalizePath(string path)
+    {
+        string trimmedPath = path.Trim().Trim('"');
+        string normalizedSeparators = trimmedPath.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+
+        return Path.GetFullPath(normalizedSeparators)
+            .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+    }
+
+    private static string NormalizeRepoRelativePath(string path)
+    {
+        string trimmedPath = path.Trim().Trim('"');
+
+        return trimmedPath
+            .Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar)
+            .TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+    }
+
+    private static bool IsPathUnderFolder(string filePath, string folderPath)
+    {
+        string normalizedFilePath = NormalizePath(filePath);
+        string normalizedFolderPath = NormalizePath(folderPath);
+        string folderWithSeparator = normalizedFolderPath + Path.DirectorySeparatorChar;
+
+        return normalizedFilePath.Equals(normalizedFolderPath, PathComparison)
+            || normalizedFilePath.StartsWith(folderWithSeparator, PathComparison);
     }
 
     private class AzurePipelineYaml

@@ -65,8 +65,7 @@
         <PackageReference Include="CliWrap" Version="3.9.0" />
         <PackageReference Include="YamlDotNet" Version="16.3.0" />
         <PackageReference Include="CommunityToolkit.Maui" Version="13.0.0" />
-        <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components" Version="4.11.3" />
-        <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components.Icons" Version="4.11.3" />
+        <PackageReference Include="MudBlazor" Version="8.4.0" />
     </ItemGroup>
 
 </Project>

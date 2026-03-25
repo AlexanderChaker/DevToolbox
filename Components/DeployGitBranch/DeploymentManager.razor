@@ -1,49 +1,41 @@
-﻿@using CommunityToolkit.Maui.Storage;
 @using DevToolbox.Services.Interfaces;
+@using DevToolbox.Services;
 @using Models;
-@using Services;
 
 @namespace DevToolbox.Components.DeployGitBranch
 
 @inject ILogger<DeploymentManager> Logger;
 @inject InMemoryLoggerService inMemoryLoggerService;
 @inject ISQLService sqlService;
-@inject IToastService ToastService;
+@inject ISnackbar Snackbar;
 
-<FluentStack Orientation=Orientation.Vertical Width="100%">
+<MudStack Spacing="2" Style="width: 100%;">
+    <MudTextField Value="@DeploymentOptions.ServerUrl" ReadOnly="true" Label="Deploying on Server" Variant="Variant.Outlined" FullWidth="true" />
+    <MudTextField Value="@DeploymentOptions.DBAuthenticationUser" ReadOnly="true" Label="Running as User" Variant="Variant.Outlined" FullWidth="true" />
+    <MudTextField Value="@DeploymentOptions.WorkingDirectory" ReadOnly="true" Label="Working Directory" Variant="Variant.Outlined" FullWidth="true" />
 
-    <FluentStack Orientation=Orientation.Horizontal VerticalAlignment="VerticalAlignment.Center">
-        <FluentTextField ReadOnly=true Label="Deploying on Server:" Size="60" @bind-Value=@DeploymentOptions.ServerUrl></FluentTextField>
-    </FluentStack>
-    <FluentStack Orientation=Orientation.Horizontal VerticalAlignment="VerticalAlignment.Center">
-        <FluentTextField ReadOnly=true Label="Running as User:" Size="60" @bind-Value=@DeploymentOptions.DBAuthenticationUser></FluentTextField>
-    </FluentStack>
-    <FluentStack Orientation=Orientation.Horizontal VerticalAlignment="VerticalAlignment.Center">
-        <FluentTextField ReadOnly=true Label="Working Directory:" Size="60" @bind-Value=@DeploymentOptions.WorkingDirectory></FluentTextField>
-    </FluentStack>
+    <MudText Typo="Typo.subtitle1">File List</MudText>
+    <MudPaper Outlined="true" Class="pa-2" Style="max-height: 300px; overflow-y: auto;">
+        <MudTable Items="@(DeploymentOptions.FileList ?? new List<string>())" Dense="true" Hover="true" Elevation="0">
+            <HeaderContent>
+                <MudTh>Path</MudTh>
+                <MudTh Style="width: 64px;"/>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Path">@context</MudTd>
+                <MudTd DataLabel="Action">
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => RemoveFile(context))" />
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudPaper>
 
-    <div style="width:auto;min-width:500px">
-    <FluentLabel>File List</FluentLabel>
-    <FluentListbox TOption="string"
-                   Items="@DeploymentOptions.FileList"
-                   Id="fileListbox"
-                   Height="300px"
-                   Width="100%"
-                   OptionValue="@(f=>DeploymentOptions.FileList?.IndexOf(f).ToString())"
-                   OptionText="@(f=>f)"
-                   @bind-Value="@SelectedValue"
-                   @bind-SelectedOption="@SelectedItem"/>
-    </div>
-
-    <FluentMenu Anchor="fileListbox" Trigger="MouseButton.Right" Anchored="false" @onmenuchange=OnMenuChange >
-        <FluentMenuItem Label="Remove" OnClick="@((e) => Logger.LogInformation("Remove item Clicked e.Message: {e.Message} e.Filename: {e.Filename}"))" />
-    </FluentMenu>
-
-    <FluentCounterBadge Count=@(DeploymentOptions.FileList?.Count??0) Appearance=Appearance.Lightweight VerticalPosition=70 HorizontalPosition=75 ShowWhen=@(Count=>Count==0)>
-        <FluentButton Appearance="Appearance.Accent" @onclick="RunSQLQueries" AdditionalAttributes=btnRunSQLEnabled>Run SQL</FluentButton>
-    </FluentCounterBadge>
-
-</FluentStack>
+    <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+        <MudBadge Content="@(DeploymentOptions.FileList?.Count ?? 0)" Color="Color.Primary">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="RunSQLQueries" Disabled="@(DeploymentOptions.FileList is null || DeploymentOptions.FileList.Count == 0)">Run SQL</MudButton>
+        </MudBadge>
+    </MudStack>
+</MudStack>
 
 @code {
     [Parameter]
@@ -54,63 +46,32 @@
 
     private decimal processedQueries = 0;
     private decimal totalQueries = 0;
-    protected Dictionary<string, object>? btnRunSQLEnabled { get; set; } // https://learn.microsoft.com/en-us/aspnet/core/blazor/components/splat-attributes-and-arbitrary-parameters?view=aspnetcore-8.0
 
-    private string SelectedValue { get; set; } = "";
-    private string SelectedItem { get; set; } = "";
-
-    private static string _id = "progressToast";
-    private CancellationTokenSource _cancel = new();
-    private ToastParameters<ProgressToastContent> _progressToastData = new()
+    private void RemoveFile(string file)
+    {
+        if (DeploymentOptions.FileList is null)
         {
-            Id = _id,
-            Intent = ToastIntent.Progress,
-            Title = "Running SQL Queries",
-            Timeout = 0,
-            TopAction = "Cancel",
+            return;
+        }
 
-            OnTopAction = EventCallback.Factory.Create<ToastResult>(_id/*this*/, ClickedCancel),
-            Content = new ProgressToastContent()
-            {
-                Details = "This may take a while.",
-                Progress = 0
-            }
-        };
-
-    private static void ClickedCancel()
-    {
-        //DemoLogger.WriteLine($"Clicked cancel");
-    }
-
-    private void ResetProgressToast()
-    {
-        ToastService.CloseToast(_id);
-        _cancel.Cancel();
-        _progressToastData.Content.Progress = 0;
-        ToastService.UpdateToast(_id, _progressToastData);
-        _cancel = new();
-        //EnableRunSQLBtn(false);
+        DeploymentOptions.FileList.Remove(file);
     }
 
     private async Task RunSQLQueries()
     {
-        //Reset
         inMemoryLoggerService.ClearLogs();
         processedQueries = 0;
         totalQueries = DeploymentOptions.FileList?.Count ?? 0;
-        ResetProgressToast();
 
-        if (DeploymentOptions.FileList is null)
+        if (DeploymentOptions.FileList is null || DeploymentOptions.FileList.Count == 0)
         {
-            // throw new Exception("File List needs to be generated");
-            ToastService.ShowWarning("Generate Diffs first");
+            Snackbar.Add("Generate Diffs first", Severity.Warning);
             return;
         }
 
-        if (DeploymentOptions.ServerUrl is null)
+        if (string.IsNullOrWhiteSpace(DeploymentOptions.ServerUrl))
         {
-            //throw new Exception("Server URL needs to be set");
-            ToastService.ShowWarning("Set Server URL first");
+            Snackbar.Add("Set Server URL first", Severity.Warning);
             return;
         }
 
@@ -119,8 +80,6 @@
 
         try
         {
-            ToastService.ShowProgressToast(_progressToastData);
-
             foreach (string file in DeploymentOptions.FileList)
             {
                 Uri uri = new(file);
@@ -128,12 +87,8 @@
                 inMemoryLoggerService.Log($"--Deploying to {DeploymentOptions.ServerUrl} file {baseUri.MakeRelativeUri(uri)}");
                 var results = await sqlService.RunSQLQueryAsync(DeploymentOptions.ServerUrl, file);
 
-                //Update Toast Progress
                 processedQueries++;
-                _progressToastData.Content.Progress = (int)((processedQueries/totalQueries)*100);
-                ToastService.UpdateToast(_id, _progressToastData);
 
-                //Print results
                 foreach (string result in results)
                 {
                     Logger.LogInformation(result);
@@ -142,37 +97,13 @@
 
                     await DeploymentOptionsChanged.InvokeAsync(DeploymentOptions);
                 }
-
-                await Task.Delay(100, _cancel.Token);
             }
 
-            ToastService.ShowSuccess("SQL Queries Deployed Successfully");
+            Snackbar.Add($"SQL Queries Deployed Successfully ({processedQueries}/{totalQueries})", Severity.Success);
         }
         catch (Exception)
         {
-            ToastService.ShowError("Could not run all SQL queries");
-        }
-    }
-
-    private void EnableRunSQLBtn(bool enable)
-    {
-        btnRunSQLEnabled = btnRunSQLEnabled ?? new Dictionary<string, object>();
-
-        if (enable)
-        {
-            btnRunSQLEnabled?.Clear();
-        }
-        else
-        {
-            btnRunSQLEnabled["disabled"] = "";
-        }
-    }
-
-    private void OnMenuChange(MenuChangeEventArgs args)
-    {
-        if (args?.Value is not null)
-        {
-            DeploymentOptions?.FileList?.Remove(args.Value);
+            Snackbar.Add("Could not run all SQL queries", Severity.Error);
         }
     }
 }

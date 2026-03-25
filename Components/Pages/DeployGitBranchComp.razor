@@ -1,5 +1,4 @@
-﻿@using CommunityToolkit.Maui.Storage;
-@using DevToolbox.Components.LogArea
+﻿@using DevToolbox.Components.LogArea
 @using Models;
 @using DevToolbox.Components.DeployGitBranch;
 
@@ -9,51 +8,37 @@
 
 @inject ILogger<DeployGitBranchComp> Logger;
 
-<FluentStack VerticalGap=15 Orientation=Orientation.Vertical VerticalAlignment=VerticalAlignment.Center>
-    <FluentTabs>
-        <FluentTab Id="tab-1" style="padding-top: 15px;">
-            <Header>
-                <FluentIcon Value="@(new Icons.Regular.Size24.CodeBlock())" />
-                <span>Git</span>
-            </Header>
-            <Content>
+<div class="deploy-scroll-container">
+    <MudStack Class="deploy-page" Spacing="2">
+        <MudText Typo="Typo.h5">Deploy SQL Branch</MudText>
+        <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-4" Class="deploy-tabs">
+            <MudTabPanel Text="Git">
                 <GitManager @bind-DeploymentOptions=@deploymentOptions />
-            </Content>
-        </FluentTab>
+            </MudTabPanel>
 
-        <FluentTab Id="tab-2" style="padding-top: 15px;">
-            <Header>
-                <FluentIcon Value="@(new Icons.Regular.Size24.Database())" />
-                <span>Database</span>
-            </Header>
-            <Content>
+            <MudTabPanel Text="Database">
                 <SQLManager @bind-DeploymentOptions=@deploymentOptions />
-            </Content>
-        </FluentTab>
+            </MudTabPanel>
 
-        <FluentTab Id="tab-3" style="padding-top: 15px;">
-            <Header>
-                <FluentIcon Value="@(new Icons.Regular.Size24.AddSquare())" />
-                <span>Deploy</span>
-            </Header>
-            <Content>
+            <MudTabPanel Text="Deploy">
                 <DeploymentManager @bind-DeploymentOptions=@deploymentOptions />
-            </Content>
-        </FluentTab>
-    </FluentTabs>
+            </MudTabPanel>
+        </MudTabs>
+    </MudStack>
 
-</FluentStack>
+    <MudSwitch T="bool" @bind-Value="showConsole" @bind-Value:after="() => ShowConsoleAsync(showConsole)" Color="Color.Primary">
+        Show Logs
+    </MudSwitch>
 
-<div class="bottom-row" style="flex:1;display:flex;flex-direction:column;min-height:0;width:100%;">
-    <FluentCheckbox @bind-Value="showConsole" @bind-Value:after="() => ShowConsoleAsync(showConsole)" Label="Show Logs" />
     @if (showConsole)
     {
-        <LogArea />
+        <div class="deploy-bottom-row">
+            <LogArea />
+        </div>
     }
 </div>
 
 @code {
-
     protected DeploymentOptions deploymentOptions { get; set; } = new();
     protected Dictionary<string, object> pageGitMangagerHidden { get; set; } = new();
     protected Dictionary<string, object> pageSQLMangagerHidden { get; set; } = new();

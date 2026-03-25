@@ -1,0 +1,79 @@
+.kafka-page {
+    padding: 12px;
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.kafka-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.kafka-editors {
+    width: 100%;
+}
+
+.kafka-editor-col {
+    display: flex;
+    flex-direction: column;
+}
+
+.kafka-editor-title {
+    margin-bottom: 4px;
+}
+
+.kafka-output-actions {
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+}
+
+.kafka-editor-input {
+    font-family: 'Cascadia Code', Consolas, monospace;
+    font-size: 13px;
+}
+
+@media (min-width: 961px) {
+    .kafka-editors {
+        flex: 1;
+        height: 100%;
+        min-height: 0;
+        align-items: stretch;
+    }
+
+    .kafka-editor-col {
+        min-height: 0;
+        height: 100%;
+    }
+
+    .kafka-editor-input {
+        flex: 1;
+        min-height: 0;
+    }
+
+    .kafka-editor-col ::deep .kafka-editor-input .mud-input-control,
+    .kafka-editor-col ::deep .kafka-editor-input .mud-input-control-input-container,
+    .kafka-editor-col ::deep .kafka-editor-input .mud-input,
+    .kafka-editor-col ::deep .kafka-editor-input .mud-input-outlined,
+    .kafka-editor-col ::deep .kafka-editor-input .mud-input-slot {
+        height: 100%;
+    }
+
+    .kafka-editor-col ::deep .kafka-editor-input textarea.mud-input-slot {
+        height: 100% !important;
+        min-height: 0;
+        box-sizing: border-box;
+    }
+}
+
+@media (max-width: 960px) {
+    .kafka-page {
+        padding: 8px;
+    }
+
+    .kafka-editor-col ::deep .kafka-editor-input textarea.mud-input-slot {
+        min-height: 220px;
+    }
+}

@@ -1,5 +1,4 @@
-﻿@using DevToolbox.Components.LogArea;
-@using DevToolbox.Services;
+﻿@using DevToolbox.Services;
 
 @implements IDisposable
 @inherits LayoutComponentBase
@@ -19,10 +18,29 @@
     </main>
 </div>
 
-<FluentToastProvider MaxToastCount="10" />
-<FluentMenuProvider />
+<MudThemeProvider Theme="_mudTheme" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
 
 @code {
+    private readonly MudTheme _mudTheme = new()
+    {
+        PaletteLight = new PaletteLight
+        {
+            Primary = "#02609d",
+            Secondary = "#564738",
+            Background = "#FFFFFF",
+            Surface = "#FFFFFF",
+            AppbarBackground = "#FF0000",
+            AppbarText = "#E2E8F0"
+        },
+        LayoutProperties = new LayoutProperties
+        {
+            DefaultBorderRadius = "10px"
+        }
+    };
+
     private bool isCollapsed;
 
     protected override void OnInitialized()

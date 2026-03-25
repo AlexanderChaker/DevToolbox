@@ -10,7 +10,7 @@
 .custom-log-area {
     width: 100%;
     flex: 1;
-    min-height: 0;
+    min-height: 500px;
     background: #111;
     color: #ccc;
     font-family: 'Cascadia Mono', 'Consolas', 'Courier New', monospace;

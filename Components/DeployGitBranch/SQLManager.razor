@@ -1,24 +1,18 @@
-﻿@using CommunityToolkit.Maui.Storage;
-@using DevToolbox.Services.Interfaces;
+﻿@using DevToolbox.Services.Interfaces;
 @using Models;
-@using Services;
 
 @namespace DevToolbox.Components.DeployGitBranch
 
 @inject ILogger<SQLManager> Logger;
 @inject ISQLService sqlService;
-@inject IToastService ToastService;
+@inject ISnackbar Snackbar;
 
-<FluentStack Orientation=Orientation.Vertical VerticalAlignment="VerticalAlignment.Center">
-    <FluentStack Orientation=Orientation.Horizontal>
-        <FluentTextField @bind-Value=@serverUrl Size="60" />
-        <FluentButton Appearance="Appearance.Accent" @onclick="SetServerURL">Set Server</FluentButton>
-    </FluentStack>
-
-    <FluentStack Orientation=Orientation.Horizontal VerticalAlignment=VerticalAlignment.Center>
-        <FluentCombobox Label="Default DB (optional)" Autocomplete="ComboboxAutocomplete.Both" Items="dbNames" @bind-Value="@dbName" Height="200px" Width="200px" />
-    </FluentStack>
-</FluentStack>
+<MudStack Spacing="2">
+    <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+        <MudTextField @bind-Value="serverUrl" FullWidth="true" Variant="Variant.Outlined" />
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SetServerURL">Set Server</MudButton>
+    </MudStack>
+</MudStack>
 
 @code {
     [Parameter]
@@ -27,7 +21,7 @@
     [Parameter]
     public EventCallback<DeploymentOptions> DeploymentOptionsChanged { get; set; }
 
-    protected string dbName { get; set; } = "";
+    @* protected string dbName { get; set; } = ""; *@
     protected List<string> dbNames { get; set; } = new();
     protected string serverUrl { get; set; } = "";
 
@@ -38,7 +32,6 @@
 
     private async Task SetServerURL()
     {
-        //TODO check if the connection is valid
         string connectionString = $"Server={serverUrl};Integrated Security=true;Multisubnetfailover=True;Application Name=DevToolkit.DevToolbox;Encrypt=true;TrustServerCertificate=True";
         sqlService.SetConnectionString(connectionString);
 
@@ -48,7 +41,7 @@
         }
         catch (Exception)
         {
-            ToastService.ShowError("Failed To Set Server");
+            Snackbar.Add("Failed To Set Server", Severity.Error);
             return;
         }
 
@@ -57,7 +50,7 @@
         await SecureStorage.Default.SetAsync("serverUrl", serverUrl);
         await DeploymentOptionsChanged.InvokeAsync(DeploymentOptions);
 
-        ToastService.ShowSuccess("Server Set Successfully");
+        Snackbar.Add("Server Set Successfully", Severity.Success);
     }
 
 }

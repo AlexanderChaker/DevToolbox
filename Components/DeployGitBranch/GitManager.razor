@@ -1,32 +1,40 @@
 ﻿@using CommunityToolkit.Maui.Storage;
 @using Models;
-@using Services;
 @using DevToolbox.Services.Interfaces;
 
 @namespace DevToolbox.Components.DeployGitBranch
 
 @inject ILogger<GitManager> Logger;
 @inject IGitService gitService;
-@inject IToastService ToastService;
+@inject ISnackbar Snackbar;
 
-<FluentStack Orientation=Orientation.Vertical VerticalAlignment="VerticalAlignment.Center">
-    <FluentStack Orientation=Orientation.Horizontal>
-        <FluentTextField @bind-Value=@DeploymentOptions.WorkingDirectory ReadOnly=true Size="60" />
-        <FluentButton Appearance="Appearance.Accent" @onclick="SetWorkingDirectoryAsync">Set Working Directory</FluentButton>
-    </FluentStack>
+<MudStack Spacing="2">
+    <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+        <MudTextField Value="@DeploymentOptions.WorkingDirectory" Label="Working Directory" ReadOnly="true" FullWidth="true" Variant="Variant.Outlined" />
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SetWorkingDirectoryAsync">Set</MudButton>
+    </MudStack>
 
-    <FluentStack Orientation=Orientation.Horizontal VerticalAlignment="VerticalAlignment.Center">
-        <FluentCombobox Label="Current Branch" Autocomplete="ComboboxAutocomplete.Both" Items="gitBranches" @bind-Value="@currentBranch" Height="200px" Width="200px" />
-        <FluentSwitch @bind-Value=useYaml Label="Load Yaml" />
-    </FluentStack>
+    <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+        <MudSelect T="string" Label="Current Branch" @bind-Value="currentBranch" Variant="Variant.Outlined" Style="min-width: 240px;">
+            @foreach (var branch in gitBranches)
+            {
+                <MudSelectItem T="string" Value="@branch">@branch</MudSelectItem>
+            }
+        </MudSelect>
+        <MudSwitch T="bool" @bind-Value="useYaml" Color="Color.Primary">Load Yaml</MudSwitch>
+    </MudStack>
 
-    <FluentStack Orientation=Orientation.Horizontal VerticalAlignment="VerticalAlignment.Center">
-        <FluentCombobox Label="Source Branch" Autocomplete="ComboboxAutocomplete.Both" Items="gitBranches" @bind-Value="@sourceBranch" Height="200px" Width="200px" />
-    </FluentStack>
+    <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+        <MudSelect T="string" Label="Source Branch" @bind-Value="sourceBranch" Variant="Variant.Outlined" Style="min-width: 240px;">
+            @foreach (var branch in gitBranches)
+            {
+                <MudSelectItem T="string" Value="@branch">@branch</MudSelectItem>
+            }
+        </MudSelect>
+    </MudStack>
 
-    <FluentButton Appearance="Appearance.Accent" @onclick="RunGitDiffsAsync">Git Diffs</FluentButton>
-    <FluentProgressRing hidden></FluentProgressRing>
-</FluentStack>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="RunGitDiffsAsync">Git Diffs</MudButton>
+</MudStack>
 
 @code {
 
@@ -36,7 +44,7 @@
     [Parameter]
     public EventCallback<DeploymentOptions> DeploymentOptionsChanged { get; set; }
 
-    protected bool useYaml { get; set; } = false;
+    protected bool useYaml { get; set; } = true;
     protected string yamlFilePath { get; set; } = "";
     protected List<string>? yamlFoldersToProcess { get; set; }
     //protected string workingDirectory { get; set; } = "";
@@ -85,20 +93,23 @@
 
             if (folder.IsSuccessful && !string.IsNullOrEmpty(folder?.Folder?.Path))
             {
-                Logger.LogInformation("Folder location: {path}", folder.Folder.Path);
+                string normalizedWorkingDirectory = Path.GetFullPath(folder.Folder.Path)
+                    .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
-                bool isGitRepo = await gitService.VerifyGitRepoAsync(folder.Folder.Path);
+                Logger.LogInformation("Folder location: {path}", normalizedWorkingDirectory);
+
+                bool isGitRepo = await gitService.VerifyGitRepoAsync(normalizedWorkingDirectory);
 
                 if (!isGitRepo)
                 {
-                    ToastService.ShowError("Not a Git Repo");
+                    Snackbar.Add("Not a Git Repo", Severity.Error);
                     return;
                 }
 
-                DeploymentOptions.WorkingDirectory = folder.Folder.Path;
-                gitBranches = await gitService.GetBranchesAsync(folder.Folder.Path);
+                DeploymentOptions.WorkingDirectory = normalizedWorkingDirectory;
+                gitBranches = await gitService.GetBranchesAsync(normalizedWorkingDirectory);
 
-                ToastService.ShowSuccess("Directory Set Successfully");
+                Snackbar.Add("Directory Set Successfully", Severity.Success);
             }
         }
         catch (Exception ex)
@@ -111,7 +122,7 @@
     {
         if (string.IsNullOrEmpty(DeploymentOptions.WorkingDirectory))
         {
-            ToastService.ShowError("Set Working Directory first");
+            Snackbar.Add("Set Working Directory first", Severity.Warning);
             return;
         }
 
@@ -162,7 +173,7 @@
             Logger.LogInformation(line);
         }
 
-        ToastService.ShowSuccess("Diffs Generated Sucessfully");
+        Snackbar.Add("Diffs Generated Successfully", Severity.Success);
 
     }
 }
