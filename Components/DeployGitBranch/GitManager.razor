@@ -44,7 +44,7 @@
     [Parameter]
     public EventCallback<DeploymentOptions> DeploymentOptionsChanged { get; set; }
 
-    protected bool useYaml { get; set; } = false;
+    protected bool useYaml { get; set; } = true;
     protected string yamlFilePath { get; set; } = "";
     protected List<string>? yamlFoldersToProcess { get; set; }
     //protected string workingDirectory { get; set; } = "";
@@ -93,9 +93,12 @@
 
             if (folder.IsSuccessful && !string.IsNullOrEmpty(folder?.Folder?.Path))
             {
-                Logger.LogInformation("Folder location: {path}", folder.Folder.Path);
+                string normalizedWorkingDirectory = Path.GetFullPath(folder.Folder.Path)
+                    .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
-                bool isGitRepo = await gitService.VerifyGitRepoAsync(folder.Folder.Path);
+                Logger.LogInformation("Folder location: {path}", normalizedWorkingDirectory);
+
+                bool isGitRepo = await gitService.VerifyGitRepoAsync(normalizedWorkingDirectory);
 
                 if (!isGitRepo)
                 {
@@ -103,8 +106,8 @@
                     return;
                 }
 
-                DeploymentOptions.WorkingDirectory = folder.Folder.Path;
-                gitBranches = await gitService.GetBranchesAsync(folder.Folder.Path);
+                DeploymentOptions.WorkingDirectory = normalizedWorkingDirectory;
+                gitBranches = await gitService.GetBranchesAsync(normalizedWorkingDirectory);
 
                 Snackbar.Add("Directory Set Successfully", Severity.Success);
             }
