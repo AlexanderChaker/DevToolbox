@@ -1,3 +1,12 @@
+# KafkaSerializer
+A utility for deserializing and formatting Kafka messages. Paste or type a JSON message into the input pane and click **Convert** to get pretty-printed output.
+
+- **Decompresses** gzip-compressed (Base64-encoded) `Message` fields automatically
+- **Unescapes** nested JSON strings recursively, expanding them into structured JSON
+- **Copy** the formatted output to the clipboard, or **Copy Escaped** to re-serialize the `Message` field back into an escaped string
+- **Paste from Clipboard** to quickly load a message without manual pasting
+- Supports a system-tray shortcut that pastes from the clipboard and converts in one step
+
 # DeployGitBranch
 This tool deploys a branch to a database, using those steps:
 - Select the Working Directory of the repo
@@ -7,9 +16,5 @@ This tool deploys a branch to a database, using those steps:
 - The app will use the diffs to generate SQL statements and deploy on the server
 
 # TODO
-- Re-add collapsable nav menu
-- Add a modifiable File List after the diffs have been created, with support for drag-and-drop and delete
-- Catch all exceptions that crash the app, replace with Toast notifications (Application Level)
-- Catch exception when cannot connect to database or repo
+- Add a sortable File List after the diffs have been created
 - Implement "Cancel" feature when running SQL queries
-- Refactor Logs, change the UI console and the way the services write to the Logs variable
