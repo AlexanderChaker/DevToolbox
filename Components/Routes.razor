@@ -12,6 +12,6 @@
     [Inject] private NavigationManager? NavigationManager { get; set; }
     private RenderFragment RedirectToDeployGitBranch() => builder =>
     {
-        NavigationManager?.NavigateTo("/deploygitbranch", true);
+        NavigationManager?.NavigateTo("/", true);
     };
 }

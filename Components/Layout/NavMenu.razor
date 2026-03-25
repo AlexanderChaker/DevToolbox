@@ -5,7 +5,10 @@
         <div class="container-fluid">
             @if (!IsCollapsed)
             {
-                <a class="navbar-brand" href="">Dev Toolbox</a>
+                <div class="brand-block">
+                    <a class="navbar-brand" href="">Dev Toolbox</a>
+                    <div class="navbar-version">@($"v{AppVersion}")</div>
+                </div>
             }
         </div>
     </div>
@@ -15,20 +18,20 @@
     <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
         <nav class="flex-column">
             <div class="nav-item px-3">
-                <NavLink class="nav-link" href="deploygitbranch" Match="NavLinkMatch.All">
-                    <span class="bi bi-database-fill-nav-menu" aria-hidden="true"></span>
-                    @if (!IsCollapsed)
-                    {
-                        <text>Deploy SQL Branch</text>
-                    }
-                </NavLink>
-            </div>
-            <div class="nav-item px-3">
                 <NavLink class="nav-link" href="kafkaserializer" Match="NavLinkMatch.All">
                     <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span>
                     @if (!IsCollapsed)
                     {
                         <text>Kafka Serializer</text>
+                    }
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="deploygitbranch" Match="NavLinkMatch.All">
+                    <span class="bi bi-database-fill-nav-menu" aria-hidden="true"></span>
+                    @if (!IsCollapsed)
+                    {
+                        <text>Deploy SQL Branch</text>
                     }
                 </NavLink>
             </div>
@@ -45,6 +48,8 @@
 @code {
     [Parameter] public bool IsCollapsed { get; set; }
     [Parameter] public EventCallback<bool> IsCollapsedChanged { get; set; }
+
+    private string AppVersion { get; } = DevToolbox.AppVersionInfo.Version;
 
     private async Task ToggleCollapse()
     {
