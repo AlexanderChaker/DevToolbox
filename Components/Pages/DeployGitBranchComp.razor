@@ -11,28 +11,31 @@
 <div class="deploy-scroll-container">
     <MudStack Class="deploy-page" Spacing="2">
         <MudText Typo="Typo.h5">Deploy SQL Branch</MudText>
-        <MudTabs Elevation="1" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-4" Class="deploy-tabs">
+        <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-4" Class="deploy-tabs">
             <MudTabPanel Text="Git">
-                    <GitManager @bind-DeploymentOptions=@deploymentOptions />
+                <GitManager @bind-DeploymentOptions=@deploymentOptions />
             </MudTabPanel>
 
             <MudTabPanel Text="Database">
-                    <SQLManager @bind-DeploymentOptions=@deploymentOptions />
+                <SQLManager @bind-DeploymentOptions=@deploymentOptions />
             </MudTabPanel>
 
             <MudTabPanel Text="Deploy">
-                    <DeploymentManager @bind-DeploymentOptions=@deploymentOptions />
+                <DeploymentManager @bind-DeploymentOptions=@deploymentOptions />
             </MudTabPanel>
         </MudTabs>
     </MudStack>
 
-    <div class="deploy-bottom-row">
-        <MudSwitch T="bool" @bind-Value="showConsole" @bind-Value:after="() => ShowConsoleAsync(showConsole)" Color="Color.Primary">Show Logs</MudSwitch>
-        @if (showConsole)
-        {
+    <MudSwitch T="bool" @bind-Value="showConsole" @bind-Value:after="() => ShowConsoleAsync(showConsole)" Color="Color.Primary">
+        Show Logs
+    </MudSwitch>
+
+    @if (showConsole)
+    {
+        <div class="deploy-bottom-row">
             <LogArea />
-        }
-    </div>
+        </div>
+    }
 </div>
 
 @code {

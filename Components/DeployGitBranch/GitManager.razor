@@ -10,8 +10,8 @@
 
 <MudStack Spacing="2">
     <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
-        <MudTextField Value="@DeploymentOptions.WorkingDirectory" ReadOnly="true" FullWidth="true" Variant="Variant.Outlined" />
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SetWorkingDirectoryAsync">Working Directory</MudButton>
+        <MudTextField Value="@DeploymentOptions.WorkingDirectory" Label="Working Directory" ReadOnly="true" FullWidth="true" Variant="Variant.Outlined" />
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SetWorkingDirectoryAsync">Set</MudButton>
     </MudStack>
 
     <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
