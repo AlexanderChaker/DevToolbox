@@ -18,20 +18,24 @@
 
         <!-- Versions -->
         <ApplicationDisplayVersion>0.2</ApplicationDisplayVersion>
-        <ApplicationVersion>0.2</ApplicationVersion>
-        <Version>0.2</Version>
-
-        <!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
-        <WindowsPackageType>None</WindowsPackageType>
+        <ApplicationVersion>0</ApplicationVersion>
 
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
         <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
-            
+
         <Authors>Alexander Chaker</Authors>
         <Copyright>Alexander Chaker</Copyright>
-
     </PropertyGroup>
 
+    <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows' and '$(Configuration)' == 'Release'">
+        <WindowsPackageType>MSIX</WindowsPackageType>
+        <AppxPackageSigningEnabled>true</AppxPackageSigningEnabled>
+        <PackageCertificateThumbprint>1329e84e4618254f7cea57fb8a4a2962eb3338bf</PackageCertificateThumbprint>
+    </PropertyGroup>
+    <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows' and '$(RuntimeIdentifierOverride)' != ''">
+        <RuntimeIdentifier>$(RuntimeIdentifierOverride)</RuntimeIdentifier>
+    </PropertyGroup>
+    
     <ItemGroup>
         <!-- App Icon -->
         <MauiIcon Include="Resources\AppIcon\devtoolkit.svg" />
@@ -69,6 +73,7 @@
         <PackageReference Include="MudBlazor" Version="8.4.0" />
     </ItemGroup>
 
+    <!-- Generate version info. Workaround for MAUI not supporting $(Version) in code -->
     <Target Name="GenerateVersionInfo" BeforeTargets="CoreCompile">
         <WriteLinesToFile File="$(BaseIntermediateOutputPath)AppVersionInfo.g.cs" Overwrite="true" Lines="namespace DevToolbox%3B&#10;internal static partial class AppVersionInfo&#10;{&#10;    public const string Version = &quot;$(Version)&quot;%3B&#10;}" />
     </Target>
