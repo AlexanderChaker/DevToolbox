@@ -12,18 +12,21 @@
 @inject ISnackbar Snackbar
 @inject TrayCommandService TrayCommandService
 
-<MudStack Class="kafka-page" Spacing="2">
+<MudStack Spacing="2">
 
     <MudText Typo="Typo.h5">Kafka Serializer</MudText>
 
-    <div class="kafka-actions">
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => RunConvert())" StartIcon="@Icons.Material.Filled.PlayArrow">
+    <div>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => RunConvert())"
+                   StartIcon="@Icons.Material.Filled.PlayArrow">
             Convert
         </MudButton>
-        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="@OnPasteFromClipboard" StartIcon="@Icons.Material.Filled.ContentPaste">
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="@OnPasteFromClipboard"
+                   StartIcon="@Icons.Material.Filled.ContentPaste">
             Paste from Clipboard
         </MudButton>
-        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="@OnClear" StartIcon="@Icons.Material.Filled.Delete">
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="@OnClear"
+                   StartIcon="@Icons.Material.Filled.Delete">
             Clear
         </MudButton>
     </div>
@@ -33,33 +36,28 @@
         <MudAlert Severity="Severity.Error" Dense="true" Variant="Variant.Filled">@errorMessage</MudAlert>
     }
 
-    <MudGrid Class="kafka-editors" Spacing="2">
-        <MudItem xs="12" md="6" Class="kafka-editor-col">
-            <MudText Typo="Typo.body2" Class="kafka-editor-title">Input JSON (compressed or uncompressed)</MudText>
-            <MudTextField @bind-Value="inputJson"
-                          Variant="Variant.Outlined"
-                          FullWidth="true"
-                          Lines="20"
-                          AutoGrow="false"
-                          Class="kafka-editor-input" />
+    <MudGrid Spacing="6">
+        <MudItem md="6">
+            <MudText Typo="Typo.subtitle1" Class="kafka-editor-title">Input JSON (compressed or uncompressed)</MudText>
+            <div Id="input-json-editor" class="json-editor-container">
+                <StandaloneCodeEditor Id="input-json-editor" ConstructionOptions="InputEditorOptions" />
+            </div>
         </MudItem>
-        <MudItem xs="12" md="6" Class="kafka-editor-col">
+        <MudItem md="6">
             <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center" Class="kafka-editor-title">
-                <MudText Typo="Typo.body2">Output JSON</MudText>
-                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary" OnClick="@OnCopyOutput" Disabled="@(string.IsNullOrEmpty(outputJson))" StartIcon="@Icons.Material.Filled.ContentCopy">
+                <MudText Typo="Typo.subtitle1">Output JSON</MudText>
+                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary" OnClick="@OnCopyOutput"
+                           Disabled="@(string.IsNullOrEmpty(outputJson))" StartIcon="@Icons.Material.Filled.ContentCopy">
                     Copy
                 </MudButton>
-                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary" OnClick="@OnCopyEscaped" Disabled="@(string.IsNullOrEmpty(outputJson))" StartIcon="@Icons.Material.Filled.ContentCopy">
+                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary" OnClick="@OnCopyEscaped"
+                           Disabled="@(string.IsNullOrEmpty(outputJson))" StartIcon="@Icons.Material.Filled.ContentCopy">
                     Copy Escaped
                 </MudButton>
             </MudStack>
-            <MudTextField @bind-Value="outputJson"
-                          Variant="Variant.Outlined"
-                          FullWidth="true"
-                          Lines="20"
-                          AutoGrow="false"
-                          ReadOnly="true"
-                          Class="kafka-editor-input" />
+            <div Id="output-json-editor" class="json-editor-container">
+                <StandaloneCodeEditor Id="output-json-editor" ConstructionOptions="OutputEditorOptions" />
+            </div>
         </MudItem>
     </MudGrid>
 
@@ -73,6 +71,47 @@
     protected override void OnInitialized()
     {
         TrayCommandService.KafkaDeserializeRequested += OnTrayKafkaDeserialize;
+
+        //Testing
+        inputJson = @"
+[
+    {
+        ""name"": ""Adeel Solangi"",
+        ""language"": ""Sindhi"",
+        ""id"": ""V59OF92YF627HFY0"",
+        ""bio"": ""Donec lobortis eleifend condimentum. Cras dictum dolor lacinia lectus vehicula rutrum. Maecenas quis nisi nunc. Nam tristique feugiat est vitae mollis. Maecenas quis nisi nunc."",
+        ""version"": 6.1
+    },
+    {
+        ""name"": ""Afzal Ghaffar"",
+        ""language"": ""Sindhi"",
+        ""id"": ""ENTOCR13RSCLZ6KU"",
+        ""bio"": ""Aliquam sollicitudin ante ligula, eget malesuada nibh efficitur et. Pellentesque massa sem, scelerisque sit amet odio id, cursus tempor urna. Etiam congue dignissim volutpat. Vestibulum pharetra libero et velit gravida euismod."",
+        ""version"": 1.88
+    },
+    {
+        ""name"": ""Aamir Solangi"",
+        ""language"": ""Sindhi"",
+        ""id"": ""IAKPO3R4761JDRVG"",
+        ""bio"": ""Vestibulum pharetra libero et velit gravida euismod. Quisque mauris ligula, efficitur porttitor sodales ac, lacinia non ex. Fusce eu ultrices elit, vel posuere neque."",
+        ""version"": 7.27
+    },
+    {
+        ""name"": ""Abla Dilmurat"",
+        ""language"": ""Uyghur"",
+        ""id"": ""5ZVOEPMJUI4MB4EN"",
+        ""bio"": ""Donec lobortis eleifend condimentum. Morbi ac tellus erat."",
+        ""version"": 2.53
+    },
+    {
+        ""name"": ""Adil Eli"",
+        ""language"": ""Uyghur"",
+        ""id"": ""6VTI8X6LL0MMPJCC"",
+        ""bio"": ""Vivamus id faucibus velit, id posuere leo. Morbi vitae nisi lacinia, laoreet lorem nec, egestas orci. Suspendisse potenti."",
+        ""version"": 6.49
+    }
+]";
+        
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -170,5 +209,42 @@
         inputJson = null;
         outputJson = null;
         errorMessage = null;
+    }
+
+    private StandaloneEditorConstructionOptions InputEditorOptions(StandaloneCodeEditor editor)
+    {
+        return new StandaloneEditorConstructionOptions
+        {
+            AutomaticLayout = true,
+            Language = "json",
+            SmoothScrolling = true,
+            LineNumbers = "off",
+            RenderLineHighlight = "none",
+            RenderLineHighlightOnlyWhenFocus = false,
+            Minimap = new EditorMinimapOptions
+            {
+                Enabled = false,
+            },
+            Value = inputJson ?? string.Empty
+        };
+    }
+
+    private StandaloneEditorConstructionOptions OutputEditorOptions(StandaloneCodeEditor editor)
+    {
+        return new StandaloneEditorConstructionOptions
+        {
+            AutomaticLayout = true,
+            Language = "json",
+            SmoothScrolling = true,
+            LineNumbers = "off",
+            Minimap = new EditorMinimapOptions
+            {
+                Enabled = false,
+            },
+            ReadOnly = true,
+            RenderLineHighlight = "none",
+            RenderLineHighlightOnlyWhenFocus = false,
+            Value = outputJson ?? string.Empty
+        };
     }
 }
