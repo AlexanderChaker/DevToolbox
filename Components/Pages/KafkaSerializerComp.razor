@@ -38,7 +38,13 @@
 
     <MudGrid Spacing="6">
         <MudItem md="6">
-            <MudText Typo="Typo.subtitle1" Class="kafka-editor-title">Input JSON (compressed or uncompressed)</MudText>
+            <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center" Class="kafka-editor-title">
+                <MudText Typo="Typo.subtitle1">Input JSON</MudText>
+                @if (isCompressed)
+                {
+                    <MudChip T="string" Size="Size.Small" Color="Color.Dark" Variant="Variant.Outlined">Compressed Json</MudChip>
+                }
+            </MudStack>
             <div Id="input-json-editor" class="json-editor-container">
                 <StandaloneCodeEditor @ref="_inputEditor" Id="input-json-editor" ConstructionOptions="InputEditorOptions" />
             </div>
@@ -67,6 +73,7 @@
     private string? inputJson;
     private string? outputJson;
     private string? errorMessage;
+    private bool isCompressed;
     private StandaloneCodeEditor _inputEditor = null!;
     private StandaloneCodeEditor _outputEditor = null!;
 
@@ -121,6 +128,7 @@
     {
         errorMessage = null;
         outputJson = null;
+        isCompressed = false;
 
         try
         {
@@ -142,6 +150,7 @@
                 return;
             }
 
+            isCompressed = KafkaSerializerService.ContainsCompressedMessage(inputJson);
             outputJson = KafkaSerializerService.ProcessKafkaMessage(inputJson);
             await _outputEditor.SetValue(outputJson ?? string.Empty);
             await Clipboard.Default.SetTextAsync(outputJson);
@@ -177,6 +186,7 @@
         inputJson = null;
         outputJson = null;
         errorMessage = null;
+        isCompressed = false;
         await _inputEditor.SetValue(string.Empty);
         await _outputEditor.SetValue(string.Empty);
     }

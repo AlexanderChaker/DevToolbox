@@ -58,6 +58,53 @@ public class KafkaSerializerService : IKafkaSerializerService
         return span.Length > 1 && (span[0] == '{' || span[0] == '[');
     }
 
+    public bool ContainsCompressedMessage(string inputJson)
+    {
+        try
+        {
+            var node = JsonNode.Parse(inputJson, documentOptions: new JsonDocumentOptions
+            {
+                AllowTrailingCommas = true,
+                CommentHandling = JsonCommentHandling.Skip
+            });
+
+            if (node is JsonObject root)
+                return HasCompressedMessage(root);
+
+            if (node is JsonArray arr)
+            {
+                foreach (var element in arr)
+                    if (element is JsonObject obj && HasCompressedMessage(obj))
+                        return true;
+            }
+        }
+        catch { }
+
+        return false;
+    }
+
+    private bool HasCompressedMessage(JsonObject obj)
+    {
+        if (!obj.TryGetPropertyValue("Message", out var messageNode))
+            return false;
+
+        if (messageNode is JsonValue mv && mv.TryGetValue<string>(out var messageStr))
+        {
+            var trimmed = messageStr.AsSpan().TrimStart();
+            if (trimmed.Length > 0 && (trimmed[0] == '{' || trimmed[0] == '['))
+                return false;
+
+            try
+            {
+                DecompressGzip(messageStr);
+                return true;
+            }
+            catch { return false; }
+        }
+
+        return false;
+    }
+
     private void ProcessMessageProperty(JsonObject obj)
     {
         if (!obj.TryGetPropertyValue("Message", out var messageNode))
