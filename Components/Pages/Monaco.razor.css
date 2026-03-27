@@ -1,0 +1,11 @@
+#my-editor-id { /* applies to a specific editor instance */
+    height: 100%;
+}
+
+.my-editor-class { /* applies to all editor instances with this class */
+    height: 100%;
+}
+
+.monaco-editor-container { /* applies to all editor instances */
+    height: 100%;
+}
