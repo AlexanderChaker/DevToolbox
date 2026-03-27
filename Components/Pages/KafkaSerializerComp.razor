@@ -25,7 +25,7 @@
                    StartIcon="@Icons.Material.Filled.ContentPaste">
             Paste from Clipboard
         </MudButton>
-        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="@OnClear"
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="@(() => OnClear())"
                    StartIcon="@Icons.Material.Filled.Delete">
             Clear
         </MudButton>
@@ -40,7 +40,7 @@
         <MudItem md="6">
             <MudText Typo="Typo.subtitle1" Class="kafka-editor-title">Input JSON (compressed or uncompressed)</MudText>
             <div Id="input-json-editor" class="json-editor-container">
-                <StandaloneCodeEditor Id="input-json-editor" ConstructionOptions="InputEditorOptions" />
+                <StandaloneCodeEditor @ref="_inputEditor" Id="input-json-editor" ConstructionOptions="InputEditorOptions" />
             </div>
         </MudItem>
         <MudItem md="6">
@@ -56,7 +56,7 @@
                 </MudButton>
             </MudStack>
             <div Id="output-json-editor" class="json-editor-container">
-                <StandaloneCodeEditor Id="output-json-editor" ConstructionOptions="OutputEditorOptions" />
+                <StandaloneCodeEditor @ref="_outputEditor" Id="output-json-editor" ConstructionOptions="OutputEditorOptions" />
             </div>
         </MudItem>
     </MudGrid>
@@ -67,51 +67,12 @@
     private string? inputJson;
     private string? outputJson;
     private string? errorMessage;
+    private StandaloneCodeEditor _inputEditor = null!;
+    private StandaloneCodeEditor _outputEditor = null!;
 
     protected override void OnInitialized()
     {
         TrayCommandService.KafkaDeserializeRequested += OnTrayKafkaDeserialize;
-
-        //Testing
-        inputJson = @"
-[
-    {
-        ""name"": ""Adeel Solangi"",
-        ""language"": ""Sindhi"",
-        ""id"": ""V59OF92YF627HFY0"",
-        ""bio"": ""Donec lobortis eleifend condimentum. Cras dictum dolor lacinia lectus vehicula rutrum. Maecenas quis nisi nunc. Nam tristique feugiat est vitae mollis. Maecenas quis nisi nunc."",
-        ""version"": 6.1
-    },
-    {
-        ""name"": ""Afzal Ghaffar"",
-        ""language"": ""Sindhi"",
-        ""id"": ""ENTOCR13RSCLZ6KU"",
-        ""bio"": ""Aliquam sollicitudin ante ligula, eget malesuada nibh efficitur et. Pellentesque massa sem, scelerisque sit amet odio id, cursus tempor urna. Etiam congue dignissim volutpat. Vestibulum pharetra libero et velit gravida euismod."",
-        ""version"": 1.88
-    },
-    {
-        ""name"": ""Aamir Solangi"",
-        ""language"": ""Sindhi"",
-        ""id"": ""IAKPO3R4761JDRVG"",
-        ""bio"": ""Vestibulum pharetra libero et velit gravida euismod. Quisque mauris ligula, efficitur porttitor sodales ac, lacinia non ex. Fusce eu ultrices elit, vel posuere neque."",
-        ""version"": 7.27
-    },
-    {
-        ""name"": ""Abla Dilmurat"",
-        ""language"": ""Uyghur"",
-        ""id"": ""5ZVOEPMJUI4MB4EN"",
-        ""bio"": ""Donec lobortis eleifend condimentum. Morbi ac tellus erat."",
-        ""version"": 2.53
-    },
-    {
-        ""name"": ""Adil Eli"",
-        ""language"": ""Uyghur"",
-        ""id"": ""6VTI8X6LL0MMPJCC"",
-        ""bio"": ""Vivamus id faucibus velit, id posuere leo. Morbi vitae nisi lacinia, laoreet lorem nec, egestas orci. Suspendisse potenti."",
-        ""version"": 6.49
-    }
-]";
-        
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -147,6 +108,7 @@
             if (Clipboard.Default.HasText)
             {
                 inputJson = await Clipboard.Default.GetTextAsync();
+                await _inputEditor.SetValue(inputJson ?? string.Empty);
             }
         }
         catch (Exception ex)
@@ -165,6 +127,11 @@
             if (pasteFromClipboard && Clipboard.Default.HasText)
             {
                 inputJson = await Clipboard.Default.GetTextAsync();
+                await _inputEditor.SetValue(inputJson ?? string.Empty);
+            }
+            else
+            {
+                inputJson = await _inputEditor.GetValue();
             }
 
             if (string.IsNullOrWhiteSpace(inputJson))
@@ -176,6 +143,7 @@
             }
 
             outputJson = KafkaSerializerService.ProcessKafkaMessage(inputJson);
+            await _outputEditor.SetValue(outputJson ?? string.Empty);
             await Clipboard.Default.SetTextAsync(outputJson);
             Snackbar.Add("Copied to Clipboard", Severity.Success);
         }
@@ -204,11 +172,13 @@
         }
     }
 
-    private void OnClear()
+    private async Task OnClear()
     {
         inputJson = null;
         outputJson = null;
         errorMessage = null;
+        await _inputEditor.SetValue(string.Empty);
+        await _outputEditor.SetValue(string.Empty);
     }
 
     private StandaloneEditorConstructionOptions InputEditorOptions(StandaloneCodeEditor editor)
