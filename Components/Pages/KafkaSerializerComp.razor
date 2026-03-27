@@ -12,18 +12,21 @@
 @inject ISnackbar Snackbar
 @inject TrayCommandService TrayCommandService
 
-<MudStack Class="kafka-page" Spacing="2">
+<MudStack Spacing="2">
 
     <MudText Typo="Typo.h5">Kafka Serializer</MudText>
 
-    <div class="kafka-actions">
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => RunConvert())" StartIcon="@Icons.Material.Filled.PlayArrow">
+    <div>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => RunConvert())"
+                   StartIcon="@Icons.Material.Filled.PlayArrow">
             Convert
         </MudButton>
-        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="@OnPasteFromClipboard" StartIcon="@Icons.Material.Filled.ContentPaste">
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="@OnPasteFromClipboard"
+                   StartIcon="@Icons.Material.Filled.ContentPaste">
             Paste from Clipboard
         </MudButton>
-        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="@OnClear" StartIcon="@Icons.Material.Filled.Delete">
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="@(() => OnClear())"
+                   StartIcon="@Icons.Material.Filled.Delete">
             Clear
         </MudButton>
     </div>
@@ -33,33 +36,34 @@
         <MudAlert Severity="Severity.Error" Dense="true" Variant="Variant.Filled">@errorMessage</MudAlert>
     }
 
-    <MudGrid Class="kafka-editors" Spacing="2">
-        <MudItem xs="12" md="6" Class="kafka-editor-col">
-            <MudText Typo="Typo.body2" Class="kafka-editor-title">Input JSON (compressed or uncompressed)</MudText>
-            <MudTextField @bind-Value="inputJson"
-                          Variant="Variant.Outlined"
-                          FullWidth="true"
-                          Lines="20"
-                          AutoGrow="false"
-                          Class="kafka-editor-input" />
-        </MudItem>
-        <MudItem xs="12" md="6" Class="kafka-editor-col">
+    <MudGrid Spacing="6">
+        <MudItem md="6">
             <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center" Class="kafka-editor-title">
-                <MudText Typo="Typo.body2">Output JSON</MudText>
-                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary" OnClick="@OnCopyOutput" Disabled="@(string.IsNullOrEmpty(outputJson))" StartIcon="@Icons.Material.Filled.ContentCopy">
+                <MudText Typo="Typo.subtitle1">Input JSON</MudText>
+                @if (isCompressed)
+                {
+                    <MudChip T="string" Size="Size.Small" Color="Color.Dark" Variant="Variant.Outlined">Compressed Json</MudChip>
+                }
+            </MudStack>
+            <div Id="input-json-editor" class="json-editor-container">
+                <StandaloneCodeEditor @ref="_inputEditor" Id="input-json-editor" ConstructionOptions="InputEditorOptions" />
+            </div>
+        </MudItem>
+        <MudItem md="6">
+            <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center" Class="kafka-editor-title">
+                <MudText Typo="Typo.subtitle1">Output JSON</MudText>
+                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary" OnClick="@OnCopyOutput"
+                           Disabled="@(string.IsNullOrEmpty(outputJson))" StartIcon="@Icons.Material.Filled.ContentCopy">
                     Copy
                 </MudButton>
-                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary" OnClick="@OnCopyEscaped" Disabled="@(string.IsNullOrEmpty(outputJson))" StartIcon="@Icons.Material.Filled.ContentCopy">
+                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary" OnClick="@OnCopyEscaped"
+                           Disabled="@(string.IsNullOrEmpty(outputJson))" StartIcon="@Icons.Material.Filled.ContentCopy">
                     Copy Escaped
                 </MudButton>
             </MudStack>
-            <MudTextField @bind-Value="outputJson"
-                          Variant="Variant.Outlined"
-                          FullWidth="true"
-                          Lines="20"
-                          AutoGrow="false"
-                          ReadOnly="true"
-                          Class="kafka-editor-input" />
+            <div Id="output-json-editor" class="json-editor-container">
+                <StandaloneCodeEditor @ref="_outputEditor" Id="output-json-editor" ConstructionOptions="OutputEditorOptions" />
+            </div>
         </MudItem>
     </MudGrid>
 
@@ -69,6 +73,9 @@
     private string? inputJson;
     private string? outputJson;
     private string? errorMessage;
+    private bool isCompressed;
+    private StandaloneCodeEditor _inputEditor = null!;
+    private StandaloneCodeEditor _outputEditor = null!;
 
     protected override void OnInitialized()
     {
@@ -108,6 +115,7 @@
             if (Clipboard.Default.HasText)
             {
                 inputJson = await Clipboard.Default.GetTextAsync();
+                await _inputEditor.SetValue(inputJson ?? string.Empty);
             }
         }
         catch (Exception ex)
@@ -120,12 +128,18 @@
     {
         errorMessage = null;
         outputJson = null;
+        isCompressed = false;
 
         try
         {
             if (pasteFromClipboard && Clipboard.Default.HasText)
             {
                 inputJson = await Clipboard.Default.GetTextAsync();
+                await _inputEditor.SetValue(inputJson ?? string.Empty);
+            }
+            else
+            {
+                inputJson = await _inputEditor.GetValue();
             }
 
             if (string.IsNullOrWhiteSpace(inputJson))
@@ -136,7 +150,9 @@
                 return;
             }
 
+            isCompressed = KafkaSerializerService.ContainsCompressedMessage(inputJson);
             outputJson = KafkaSerializerService.ProcessKafkaMessage(inputJson);
+            await _outputEditor.SetValue(outputJson ?? string.Empty);
             await Clipboard.Default.SetTextAsync(outputJson);
             Snackbar.Add("Copied to Clipboard", Severity.Success);
         }
@@ -165,10 +181,50 @@
         }
     }
 
-    private void OnClear()
+    private async Task OnClear()
     {
         inputJson = null;
         outputJson = null;
         errorMessage = null;
+        isCompressed = false;
+        await _inputEditor.SetValue(string.Empty);
+        await _outputEditor.SetValue(string.Empty);
+    }
+
+    private StandaloneEditorConstructionOptions InputEditorOptions(StandaloneCodeEditor editor)
+    {
+        return new StandaloneEditorConstructionOptions
+        {
+            AutomaticLayout = true,
+            Language = "json",
+            SmoothScrolling = true,
+            LineNumbers = "off",
+            RenderLineHighlight = "none",
+            RenderLineHighlightOnlyWhenFocus = false,
+            Minimap = new EditorMinimapOptions
+            {
+                Enabled = false,
+            },
+            Value = inputJson ?? string.Empty
+        };
+    }
+
+    private StandaloneEditorConstructionOptions OutputEditorOptions(StandaloneCodeEditor editor)
+    {
+        return new StandaloneEditorConstructionOptions
+        {
+            AutomaticLayout = true,
+            Language = "json",
+            SmoothScrolling = true,
+            LineNumbers = "off",
+            Minimap = new EditorMinimapOptions
+            {
+                Enabled = false,
+            },
+            ReadOnly = true,
+            RenderLineHighlight = "none",
+            RenderLineHighlightOnlyWhenFocus = false,
+            Value = outputJson ?? string.Empty
+        };
     }
 }
